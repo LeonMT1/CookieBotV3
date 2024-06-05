@@ -23,12 +23,11 @@ class Chat(commands.Cog):
         if message.author.bot:
             return
 
-        # Update the last message time for the channel
         self.last_message_time[message.channel.id] = datetime.datetime.utcnow()
 
         if '?' in message.content:
-            print(f'Frage: {message.content} von {message.author}')
-            if random.randint(1, 100) == 1:
+            if random.randint(1, 10) == 1:
+                print(f"Frage von {message.author} beantwortet ({message.content})")
                 random_response = [
                     'Ja', 'Nein', 'Vielleicht', 'Ich hab keine Ahnung', 'Frag später nochmal', 'Frag jemand anderen',
                     'Frag mich nicht', 'Ich weiß es nicht', 'Ich kann dir nicht helfen', 'Juckt',
@@ -59,10 +58,10 @@ class Chat(commands.Cog):
                                    content=f"{random.choice(random_response)}")
                 await webhook.delete()
             else:
-                print("frage nicht beantwortet")
+                print(f"Fraage von {message.author} nicht beantwortet ({message.content})")
                 return
 
-    @tasks.loop(seconds=10)  # Überprüfe alle 10 Sekunden
+    @tasks.loop(seconds=10)
     async def check_inactivity(self):
         now = datetime.datetime.utcnow()
         if self.channel_id in self.last_message_time:
@@ -71,10 +70,27 @@ class Chat(commands.Cog):
                 channel = self.bot.get_channel(self.channel_id)
                 if channel:
                     random_questions = [
-                        'Was ist deine Lieblingsfarbe?', 'Wie war dein Tag?', 'Was ist dein Lieblingstier?',
-                        'Was ist dein Lieblingsessen?', 'Hast du ein Hobby?', 'Was ist dein Lieblingsfilm?',
-                        'Hast du Haustiere?', 'Was ist dein Traumreiseziel?', 'Was machst du beruflich?',
-                        'Was ist dein Lieblingsbuch?'
+                        'Was ist euere Lieblingsfarbe?', 'Wie war euer Tag?', 'Was ist euer Lieblingstier?',
+                        'Was ist euer Lieblingsessen?', 'Habt ihr ein Hobby? Wenn ja welche/s?',
+                        'Was euer Lieblingsfilm?', 'Habt ihr Haustiere? Wenn ja welche/s?',
+                        'Was ist euer Traumreiseziel?', 'Was ist eure Lieblingsserie?', "Was ist euer Lieblingsanime?",
+                        'Was ist euer Lieblingslied?', 'Was ist euer Lieblingsgame?', 'Was habt ihr heute noch vor?',
+                        'Was ist euer Lieblingsgetränk?', 'Wer ist euer Lieblingsyoutuber?',
+                        'Wer ist euer Lieblingsstreamer?', 'Schreibt einen random Fakt',
+                        'Was würdet ihr tun, wenn ihr 1Mio € hättet?', 'Was würdet ihr tuhen wenn ihr Diktator wärt?',
+                        'Was ist euer Lieblingssnak?', 'Wer ist euer Vorbild?', 'Was ist euer Traumberuf?',
+                        'Habt ihr Geschwister?', 'Mögt ihr Schnee?', 'Mögt ihr Regen?', 'Mögt ihr Sonne?',
+                        'Was ist eure Lieblings Jahreszeit?', 'Kaffe oder Tee?', 'Cola oder Fanta?', 'Pepsi oder Cola?',
+                        'Playstation oder Xbox?', 'PC oder Konsole?', 'Hund oder Katze?', 'Hase oder Meerschweinchen?',
+                        'Nutella mit oder ohne Butter?', 'Fortnite oder Minecraft?', 'Elden Ring oder Dark Souls?',
+                        'Beste Superkraft?', 'Unsichtbar oder fliegen können?', 'Unsterblich oder unendlich Geld?',
+                        'Unendlich Wissen oder unendlich Geld?', 'Unendlich Wissen oder unendlich Leben?',
+                        'Unendlich Leben oder unendlich Geld?', 'Unendlich Leben oder unendlich Wissen?',
+                        'Unötigste Superkraft?', 'Am liebsten in der Vergangenheit oder Zukunft leben?',
+                        'Eher Tag oder Nacht?', 'Eher Sommer oder Winter?', 'Eher Stadt oder Land?',
+                        'Eher Meer oder Berge?', 'Eher Flugzeug oder Auto?', 'Eher Zug oder Bus?',
+                        'Schlechtestes Geburtstagsgeschenk?', 'Schlechtestes Game?', 'Schlechtester Film?',
+                        'Schlechteste Serie?'
                     ]
                     await channel.send(random.choice(random_questions))
                     self.last_message_time[self.channel_id] = now
