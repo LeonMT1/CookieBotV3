@@ -120,4 +120,4 @@ async def on_member_remove(member):
 if __name__ == '__main__':
     #  bot.load_extension("cogs.lvlsystem")
     bot.load_extension("cogs.chat")
-    bot.run(os.getenv("TOKEN"))
+    bot.run(os.getenv("TESTTOKEN"))
