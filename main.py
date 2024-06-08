@@ -11,6 +11,8 @@ import apykuma
 import cpuinfo
 from colorama import Fore
 from discord.ext import tasks
+from dotenv import load_dotenv
+import yaml
 
 activity = discord.Activity(type=discord.ActivityType.playing, name="mit Cookies.")
 
@@ -44,6 +46,11 @@ async def on_ready():
     print(f" CPU: {Fore.CYAN}{cpuinfo.get_cpu_info()['brand_raw']}{Fore.RESET}")
     print(" Python Version " + Fore.YELLOW + str(platform.python_version()) + Fore.WHITE)
     print(f"Server: {Fore.CYAN}{len(bot.guilds)}{Fore.RESET} | Users: {Fore.CYAN}{len(bot.users)}{Fore.RESET}")
+    print("""
+            ━━━Datein━━━━━━Status━━━
+            main.py          ✅""")
+    await asyncio.sleep(0.3)
+    print("""            ━━━━━━━━━━━━━━━━━━━━━━━━""")
     online = discord.Embed(
         title='Online',
         description=f'{bot.user} ist online!\nOS: {platform.platform()} / {platform.release()}\n'
@@ -116,8 +123,14 @@ async def on_member_remove(member):
     else:
         return
 
+with open("language.yaml", encoding="utf-8") as file:
+    localization = yaml.safe_load(file)
+
 
 if __name__ == '__main__':
-    #  bot.load_extension("cogs.lvlsystem")
     bot.load_extension("cogs.chat")
+    bot.load_extension("cogs.birthday")
+    #  bot.load_extension("cogs.lvlsystem")
+    bot.localize_commands(localization)
+    load_dotenv()
     bot.run(os.getenv("TESTTOKEN"))

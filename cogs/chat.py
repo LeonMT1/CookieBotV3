@@ -15,8 +15,7 @@ class Chat(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         await asyncio.sleep(0.1)
-        print("""
-        chat.py          ✅""")
+        print("""            chat.py          ✅""")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -58,7 +57,7 @@ class Chat(commands.Cog):
                                    content=f"{random.choice(random_response)}")
                 await webhook.delete()
             else:
-                print(f"Fraage von {message.author} nicht beantwortet ({message.content})")
+                print(f"Frage von {message.author} nicht beantwortet ({message.content})")
                 return
 
     @tasks.loop(seconds=10)

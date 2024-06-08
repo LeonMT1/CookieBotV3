@@ -1,0 +1,53 @@
+de:
+  set_birthday:
+    name: set_geburtstag
+    description: Setze oder verändere deinen Geburtstag.
+    options:
+      day:
+        name: tag
+        description: Der Tag deines Geburtstags.
+      month:
+        name: monat
+        description: Der Monat deines Geburtstags.
+      year:
+        name: jahr
+        description: Das Jahr deines Geburtstags.
+  delete_birthday:
+    name: delete_geburtstag
+    description: Lösche deinen Geburtstag.
+  next_birthdays:
+    name: nächste_gerburtstage
+    description: Zeige die nächsten Geburtstag.
+  birthday:
+    name: geburtstag
+    description: Zeige den Geburtstag von einem Nutzer.
+  admin_birthday:
+    name: admin_geburtstag
+    description: ADMIN COMMAND. Mit diesen Command kann von jeden der Geburtstag verändert werden.
+
+en:
+  set_birthday:
+    name: set_birthday
+    description: Set or change your birthday.
+    options:
+      day:
+        name: day
+        description: The day of your birthday.
+      month:
+        name: month
+        description: The month of your birthday.
+      year:
+        name: year
+        description: The year of your birthday.
+  delete_birthday:
+    name: delete_birthday
+    description: Delete your birthday.
+  next_birthdays:
+    name: next_birthdays
+    description: Show the next birthdays.
+  birthday:
+    name: birthday
+    description: Show the birthday of a user.
+  admin_birthday:
+    name: admin_birthday
+    description: ADMIN COMMAND. With this command the birthday of everyone can be changed.

@@ -11,8 +11,6 @@ class lvlsystem(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print("""
-        ---Datein------Status---
-        main.py          ✅
         lvlsystem.py     ✅""")
 
 
