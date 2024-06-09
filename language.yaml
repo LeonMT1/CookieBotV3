@@ -24,6 +24,11 @@ de:
   admin_birthday:
     name: admin_geburtstag
     description: ADMIN COMMAND. Mit diesen Command kann von jeden der Geburtstag verändert werden.
+  ping:
+    description: Zeigt die Latenz des Bots.
+  mc_skin:
+    name: mc_skin
+    description: Zeigt den Skin von einem Minecraft Spieler.
 
 en:
   set_birthday:
@@ -51,3 +56,8 @@ en:
   admin_birthday:
     name: admin_birthday
     description: ADMIN COMMAND. With this command the birthday of everyone can be changed.
+  ping:
+    description: Shows the latancy of the Bot.
+  mc_skin:
+    name: mc_skin
+    description: Shows the skin of a Minecraft player.

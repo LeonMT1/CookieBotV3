@@ -49,7 +49,7 @@ async def on_ready():
     print("""
             ━━━Datein━━━━━━Status━━━
             main.py          ✅""")
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(0.4)
     print("""            ━━━━━━━━━━━━━━━━━━━━━━━━""")
     online = discord.Embed(
         title='Online',
@@ -130,6 +130,7 @@ with open("language.yaml", encoding="utf-8") as file:
 if __name__ == '__main__':
     bot.load_extension("cogs.chat")
     bot.load_extension("cogs.birthday")
+    bot.load_extension("cogs.commands")
     #  bot.load_extension("cogs.lvlsystem")
     bot.localize_commands(localization)
     load_dotenv()
