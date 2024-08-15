@@ -1,18 +1,18 @@
 import asyncio
 import logging
 import os
+import platform
 from datetime import datetime
 
+import apykuma
+import cpuinfo
 import discord
 import ezcord
 import pytz
-import platform
-import apykuma
-import cpuinfo
+import yaml
 from colorama import Fore
 from discord.ext import tasks
 from dotenv import load_dotenv
-import yaml
 
 activity = discord.Activity(type=discord.ActivityType.playing, name="mit Cookies.")
 
@@ -22,7 +22,7 @@ bot.add_help_command()
 # Settings
 warnping = 250  # Ab welchen Ping soll eine Warnung gesendet werden?
 checkping = 180  # Wie oft soll der Ping überprüft werden? (in Sekunden)
-logchannel = 825340653378338837  # Logchannel
+logchannel = 825340653378338837  # Log channel
 importantlogchannel = 1162660936725839952  # Wichtige Lognachrichten
 guild_id = 724602228505313311  # Server ID
 welcome_channel = 963739194331631637  # Willkommenschannel
@@ -126,12 +126,12 @@ async def on_member_remove(member):
 with open("language.yaml", encoding="utf-8") as file:
     localization = yaml.safe_load(file)
 
-
 if __name__ == '__main__':
     bot.load_extension("cogs.chat")
     bot.load_extension("cogs.birthday")
     bot.load_extension("cogs.commands")
-    #  bot.load_extension("cogs.lvlsystem")
+    bot.load_extension("cogs.counting")
+    # bot.load_extension("cogs.lvlsystem")
     bot.localize_commands(localization)
     load_dotenv()
-    bot.run(os.getenv("TESTTOKEN"))
+    bot.run(os.getenv("TOKEN"))

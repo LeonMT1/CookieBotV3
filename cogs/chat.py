@@ -46,10 +46,14 @@ class Chat(commands.Cog):
 
                 non_bot_members = [member for member in guild.members if not member.bot]
 
+                user = None
                 if non_bot_members:
                     user = random.choice(non_bot_members)
 
-                avatar_url = user.avatar.url if user.avatar else "images/defaultavatar.png"
+                if user:
+                    avatar_url = user.avatar.url if user.avatar else "images/defaultavatar.png"
+                else:
+                    avatar_url = "images/defaultavatar.png"
 
                 webhook = await message.channel.create_webhook(name="Sudo webhook...",
                                                                reason=f"Frage von {message.author}")
@@ -73,23 +77,27 @@ class Chat(commands.Cog):
                         'Was ist euer Lieblingsessen?', 'Habt ihr ein Hobby? Wenn ja welche/s?',
                         'Was euer Lieblingsfilm?', 'Habt ihr Haustiere? Wenn ja welche/s?',
                         'Was ist euer Traumreiseziel?', 'Was ist eure Lieblingsserie?', "Was ist euer Lieblingsanime?",
-                        'Was ist euer Lieblingslied?', 'Was ist euer Lieblingsgame?', 'Was habt ihr heute noch vor?',
-                        'Was ist euer Lieblingsgetränk?', 'Wer ist euer Lieblingsyoutuber?',
+                        'Was ist euer Lieblingslied?', 'Was ist euer Lieblings game?', 'Was habt ihr heute noch vor?',
+                        'Was ist euer Lieblingsgetränk?', 'Wer ist euer Lieblings youtuber?',
                         'Wer ist euer Lieblingsstreamer?', 'Schreibt einen random Fakt',
                         'Was würdet ihr tun, wenn ihr 1Mio € hättet?', 'Was würdet ihr tuhen wenn ihr Diktator wärt?',
-                        'Was ist euer Lieblingssnak?', 'Wer ist euer Vorbild?', 'Was ist euer Traumberuf?',
+                        'Was ist euer Lieblingssnack?', 'Wer ist euer Vorbild?', 'Was ist euer Traumberuf?',
                         'Habt ihr Geschwister?', 'Mögt ihr Schnee?', 'Mögt ihr Regen?', 'Mögt ihr Sonne?',
-                        'Was ist eure Lieblings Jahreszeit?', 'Kaffe oder Tee?', 'Cola oder Fanta?', 'Pepsi oder Cola?',
-                        'Playstation oder Xbox?', 'PC oder Konsole?', 'Hund oder Katze?', 'Hase oder Meerschweinchen?',
+                        'Was ist eure Lieblings Jahreszeit?', 'Kaffee oder Tee?', 'Cola oder Fanta?',
+                        'Pepsi oder Cola?', 'Playstation oder Xbox?', 'PC oder Konsole?', 'Hund oder Katze?',
+                        'Hase oder Meerschweinchen?', 'Schlechteste Serie?', 'Schlechtester Film?',
                         'Nutella mit oder ohne Butter?', 'Fortnite oder Minecraft?', 'Elden Ring oder Dark Souls?',
                         'Beste Superkraft?', 'Unsichtbar oder fliegen können?', 'Unsterblich oder unendlich Geld?',
                         'Unendlich Wissen oder unendlich Geld?', 'Unendlich Wissen oder unendlich Leben?',
                         'Unendlich Leben oder unendlich Geld?', 'Unendlich Leben oder unendlich Wissen?',
-                        'Unötigste Superkraft?', 'Am liebsten in der Vergangenheit oder Zukunft leben?',
+                        'Unnötigste Superkraft?', 'Am liebsten in der Vergangenheit oder Zukunft leben?',
                         'Eher Tag oder Nacht?', 'Eher Sommer oder Winter?', 'Eher Stadt oder Land?',
                         'Eher Meer oder Berge?', 'Eher Flugzeug oder Auto?', 'Eher Zug oder Bus?',
-                        'Schlechtestes Geburtstagsgeschenk?', 'Schlechtestes Game?', 'Schlechtester Film?',
-                        'Schlechteste Serie?'
+                        'Schlechtestes Geburtstagsgeschenk?', 'Schlechtestes Game?', 'Schlechtestes Essen?',
+                        'Schlechteste Serie?', 'Schlechtester Film?', 'Schlechteste Superkraft?',
+                        'Schlechteste Fähigkeit?', 'Schlechteste Eigenschaft?', 'Schlechteste Angewohnheit?',
+                        'Schlechteste Gewohnheit?', 'Schlechteste Marke?', 'Schlechteste Firma?',
+                        'Schlechtester Laden?', 'Schlechtestes Restaurant?', 'Schlechteste Kette?',
                     ]
                     await channel.send(random.choice(random_questions))
                     self.last_message_time[self.channel_id] = now

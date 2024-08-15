@@ -9,7 +9,7 @@ from datetime import datetime
 from datetime import date
 
 
-class birthday(commands.Cog):
+class Birthday(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.avatar = "https://cookieattack.me/img/notbywebsite/defaultavatar.png"
@@ -103,7 +103,6 @@ class birthday(commands.Cog):
     @slash_command()
     async def next_birthdays(self, ctx):
         async with aiosqlite.connect("database.db") as db:
-
             fail = discord.Embed(title="Fehler", color=discord.Color.red(),
                                  description="Es sind keine Geburtstage eingetragen.")
             embed = discord.Embed(title="Nächste Geburtstage", color=discord.Color.green())
@@ -122,7 +121,15 @@ class birthday(commands.Cog):
                         if today > next_birthday:
                             next_birthday = date(today.year + 1, month, day)
                         days_left = (next_birthday - today).days
-                        age = today.year - year if year else None
+                        today = date.today()
+
+                        age = None
+                        if year and month and day:
+                            # Grundsätzliches Alter berechnen
+                            age = today.year - year
+                            if (today.month, today.day) >= (month, day):
+                                age += 1
+
                         birthday_list.append((user, days_left, age))
 
                 birthday_list.sort(key=lambda x: x[1])
@@ -139,27 +146,27 @@ class birthday(commands.Cog):
                 await ctx.respond(embed=embed)
 
     @slash_command()
-    async def birthday(self, ctx, user: discord.Member = None):
+    async def see_birthday(self, ctx, user: discord.Member = None):
+        if user is None:
+            user = ctx.author
+        avatar = user.avatar.url if user.avatar else self.avatar
         async with aiosqlite.connect("database.db") as db:
-            if user is None:
-                user = ctx.author
-                avatar = user.avatar.url if user.avatar else self.avatar
 
-                fail = discord.Embed(title="Fehler", color=discord.Color.red(),
-                                     description="Dieser Nutzer hat keinen Geburtstag eingetragen.")
-                fail.set_thumbnail(url=avatar)
+            fail = discord.Embed(title="Fehler", color=discord.Color.red(),
+                                 description="Dieser Nutzer hat keinen Geburtstag eingetragen.")
+            fail.set_thumbnail(url=avatar)
 
-                cursor = await db.execute("SELECT day, month, year FROM birthday WHERE user_id = ?", (user.id,))
-                birthday = await cursor.fetchone()
+            cursor = await db.execute("SELECT day, month, year FROM birthday WHERE user_id = ?", (user.id,))
+            birthday = await cursor.fetchone()
 
-                if birthday:
-                    day, month, year = birthday
-                    if year:
-                        await ctx.respond(f"{user.mention} hat am **{day}.{month}.{year}** Geburtstag.")
-                    else:
-                        await ctx.respond(f"{user.mention} hat am **{day}.{month}** Geburtstag.")
+            if birthday:
+                day, month, year = birthday
+                if year:
+                    await ctx.respond(f"{user.mention} hat am **{day}.{month}.{year}** Geburtstag.", ephemeral=True)
                 else:
-                    await ctx.respond(embed=fail, ephemeral=True)
+                    await ctx.respond(f"{user.mention} hat am **{day}.{month}** Geburtstag.", ephemeral=True)
+            else:
+                await ctx.respond(embed=fail, ephemeral=True)
 
     @slash_command()
     @commands.has_permissions(administrator=True)
@@ -191,4 +198,4 @@ class birthday(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(birthday(bot))
+    bot.add_cog(Birthday(bot))
