@@ -16,25 +16,76 @@ de:
     name: delete_geburtstag
     description: Lösche deinen Geburtstag.
   next_birthdays:
-    name: nächste_gerburtstage
+    name: naechste_geburtstage
     description: Zeige die nächsten Geburtstag.
   see_birthday:
     name: geburtstag
     description: Zeige den Geburtstag von einem Nutzer.
+    options:
+      user:
+        name: nutzer
+        description: Der Nutzer von dem du den Geburtstag sehen willst.
   admin_birthday:
     name: admin_geburtstag
     description: ADMIN COMMAND. Mit diesen Command kann von jeden der Geburtstag verändert werden.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer von dem du den Geburtstag verändern willst.
+        day:
+            name: tag
+            description: Der Tag des Geburtstags.
+        month:
+            name: monat
+            description: Der Monat des Geburtstags.
+        year:
+            name: jahr
+            description: Das Jahr des Geburtstags.
   admin_delete_birthday:
     name: admin_delete_geburtstag
     description: ADMIN COMMAND. Mit diesen Command kann von jeden der Geburtstag gelöscht werden.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer von dem du den Geburtstag löschen willst.
   ping:
     description: Zeigt die Latenz des Bots.
   mc_skin:
     name: mc_skin
     description: Zeigt den Skin von einem Minecraft Spieler.
+    options:
+        username:
+            name: nutzername
+            description: Der Name des Spielers.
+        render:
+            name: render
+            description: In welcher Position soll der Skin gerendert werden?
   help:
     name: hilfe
     description: Zeigt alle Commands an.
+  tictactoe:
+    name: tictactoe
+    description: Starte ein TicTacToe Spiel.
+    options:
+        opponent:
+            name: gegner
+            description: Gegen wen willst du spielen?
+  activity:
+    name: aktivitaet
+    description: Ändere die Aktivität von dem Bot.
+    options:
+        typ:
+          name: typ
+          description: Der Typ der Aktivität.
+        name:
+          name: name
+          description: Der Name der Aktivität.
+        status:
+          name: status
+          description: Verändere den Status von dem Bot.
+        streamer:
+          name: streamer
+          description: Der Streamer den du anzeigen willst.
 
 en:
   set_birthday:
@@ -59,17 +110,68 @@ en:
   see_birthday:
     name: birthday
     description: Show the birthday of a user.
+    options:
+      user:
+        name: user
+        description: The user from which you want to see the birthday.
   admin_birthday:
     name: admin_birthday
     description: ADMIN COMMAND. With this command the birthday of everyone can be changed.
+    options:
+        user:
+            name: user
+            description: The user from which you want to change the birthday.
+        day:
+            name: day
+            description: The day of the birthday.
+        month:
+            name: month
+            description: The month of the birthday.
+        year:
+            name: year
+            description: The year of the birthday.
   admin_delete_birthday:
     name: admin_delete_birthday
     description: ADMIN COMMAND. With this command the birthday of everyone can be deleted.
+    options:
+        user:
+            name: user
+            description: The user from which you want to delete the birthday.
   ping:
-    description: Shows the latancy of the Bot.
+    description: Shows the latency of the Bot.
   mc_skin:
     name: mc_skin
     description: Shows the skin of a Minecraft player.
+    options:
+        username:
+            name: username
+            description: The name of the player.
+        render:
+            name: render
+            description: In which position should the skin be rendered?
   help:
     name: help
     description: Shows all commands.
+  tictactoe:
+    name: tictactoe
+    description: Start a TicTacToe game.
+    options:
+        opponent:
+            name: opponent
+            description: Against who do you want to play?
+  activity:
+    name: activity
+    description: Change the activity of the Bot.
+    options:
+        typ:
+          name: type
+          description: The type of the activity.
+        name:
+          name: name
+          description: The name of the activity.
+        status:
+          name: status
+          description: Change the status of the Bot.
+        streamer:
+          name: streamer
+          description: The streamer you want to show.

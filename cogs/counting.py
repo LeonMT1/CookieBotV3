@@ -34,11 +34,10 @@ class CountingCog(commands.Cog):
         async with aiosqlite.connect("database.db") as db:
             if message.author.bot:
                 return
-            if '²' in message.content:
+            if any(char in message.content for char in ['²', '³', '(', ')']):
                 await message.delete()
                 embed = discord.Embed(title="Unerlaubte Rechenoperation!",
-                                      description=f"Hoch ist nicht erlaubt (zb: 2²-2).", color=discord.Color.red())
-                embed.set_footer(text="Erlaubte Operatoren: +, -, /, *")
+                                      description=f"Erlaubte Operatoren: +, -, /, *.", color=discord.Color.red())
                 return await message.channel.send(embed=embed, delete_after=5)
             if 'ㅤ' in message.content.lower():
                 await message.delete()

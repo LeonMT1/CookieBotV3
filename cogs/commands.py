@@ -16,7 +16,12 @@ class Commands(commands.Cog):
 
     @slash_command()
     async def ping(self, ctx):
-        await ctx.respond(f"Pong! {round(self.bot.latency * 1000)}ms", ephemeral=True)
+        print(f"{ctx.author} hat /ping ausgeführt")
+
+        ping = round(self.bot.latency * 1000)
+
+        await ctx.respond(f"Pong! {ping}ms", ephemeral=True)
+        print(f"{ctx.author} wurde ein Ping von {ping}ms gesendet")
 
     @slash_command()
     async def mc_skin(self, ctx, username: Option(required=True),
@@ -26,6 +31,7 @@ class Commands(commands.Cog):
                                                               "dungeons", "facepalm", "sleeping", "dead", "archer",
                                                               "kicking", "mojavatar", "reading", "bitzel", "pixel"],
                                      default="default")):
+        print(f"{ctx.author} hat /mc_skin ausgeführt")
         async with ctx.typing():
             embed = discord.Embed(title=f"Skin von {username}", color=discord.Color.random())
             embed.set_image(url=f"https://starlightskins.lunareclipse.studio/render/{render}/{username}/full")
@@ -35,6 +41,7 @@ class Commands(commands.Cog):
             view.add_item(button)
             await ctx.respond("Loading...", ephemeral=True)
             await ctx.send(embed=embed, view=view)
+        print(f"{ctx.author} wurde der Skin von {username} gesendet mit den Render-Parameter {render}")
 
 
 def setup(bot):

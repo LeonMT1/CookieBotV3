@@ -64,7 +64,7 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    print(f'{member} ist dem {member.guild.name} Server beigerteten.')
+    print(f'{member} ist dem {member.guild.name} Server beigetreten.')
     if member.guild.id == guild_id:
         if member.bot:
             embed = discord.Embed(
@@ -103,7 +103,7 @@ async def on_member_remove(member):
         else:
             em = discord.Embed(
                 title=':wave: Tschau! Er war noch viel zu Jung um zu sterben',
-                description=f'Tschau {member.mention} vieleicht kommst du ja irgendwann wieder.',
+                description=f'Tschau {member.mention} vielleicht kommst du ja irgendwann wieder.',
                 color=discord.Color.red(),
                 timestamp=datetime.now().astimezone(tz=de),
             )
@@ -124,7 +124,8 @@ if __name__ == '__main__':
     bot.load_extension("cogs.commands")
     bot.load_extension("cogs.counting")
     # bot.load_extension("cogs.lvlsystem")
-    # bot.load_extension("cogs.ki")
+    bot.load_extension("cogs.tictactoe")
+    bot.load_extension("cogs.moderation")
     bot.localize_commands(localization)
     load_dotenv()
     bot.run(os.getenv("TESTTOKEN"))

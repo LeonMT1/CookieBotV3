@@ -1,4 +1,3 @@
-import asyncio
 import aiosqlite
 import discord
 
@@ -26,8 +25,13 @@ class Birthday(commands.Cog):
                 year INTEGER DEFAULT NONE
             )""")
             self.check_day.start()
-            await asyncio.sleep(0.2)
             print("""            birthday.py      ✅""")
+
+    @commands.Cog.listener()
+    async def on_member_leave(self, member):
+        async with aiosqlite.connect("database.db") as db:
+            await db.execute("DELETE FROM birthday WHERE user_id = ?", (member.id,))
+            await db.commit()
 
     @tasks.loop(seconds=50)
     async def check_day(self):
@@ -55,6 +59,7 @@ class Birthday(commands.Cog):
                            month: Option(int, required=True),
                            year: Option(int, default=None, required=False)):
         async with aiosqlite.connect("database.db") as db:
+            print(f"{ctx.author} hat /set_birthday ausgeführt")
             avatar = ctx.author.avatar.url if ctx.author.avatar else self.avatar
 
             fail = discord.Embed(title="Fehler", color=discord.Color.red(),
@@ -82,10 +87,12 @@ class Birthday(commands.Cog):
                         (ctx.author.id, day, month, year))
                     await db.commit()
                     await ctx.respond(embed=embedsus, ephemeral=True)
+                    print(f"{ctx.author} hat seinen Geburtstag auf den {day}.{month}.{year} gesetzt.")
 
     @slash_command()
     async def delete_birthday(self, ctx):
         async with aiosqlite.connect("database.db") as db:
+            print(f"{ctx.author} hat /delete_birthday ausgeführt")
             avatar = ctx.author.avatar.url if ctx.author.avatar else self.avatar
 
             fail = discord.Embed(title="Fehler", color=discord.Color.red(),
@@ -99,10 +106,12 @@ class Birthday(commands.Cog):
             await db.execute("DELETE FROM birthday WHERE user_id = ?", (ctx.author.id,))
             await db.commit()
             await ctx.respond(embed=embedsus, ephemeral=True)
+            print(f"{ctx.author} hat seinen Geburtstag gelöscht.")
 
     @slash_command()
     async def next_birthdays(self, ctx):
         async with aiosqlite.connect("database.db") as db:
+            print(f"{ctx.author} hat /next_birthdays ausgeführt")
             fail = discord.Embed(title="Fehler", color=discord.Color.red(),
                                  description="Es sind keine Geburtstage eingetragen.")
             embed = discord.Embed(title="Nächste Geburtstage", color=discord.Color.green())
@@ -144,9 +153,11 @@ class Birthday(commands.Cog):
 
                 embed.description = birthday_info
                 await ctx.respond(embed=embed)
+                print(f"{ctx.author} hat die nächsten Geburtstage abgefragt.")
 
     @slash_command()
     async def see_birthday(self, ctx, user: discord.Member = None):
+        print(f"{ctx.author} hat /see_birthday ausgeführt")
         if user is None:
             user = ctx.author
         avatar = user.avatar.url if user.avatar else self.avatar
@@ -163,15 +174,19 @@ class Birthday(commands.Cog):
                 day, month, year = birthday
                 if year:
                     await ctx.respond(f"{user.mention} hat am **{day}.{month}.{year}** Geburtstag.", ephemeral=True)
+                    print(f"{ctx.author} hat den Geburtstag von {user} abgefragt.")
                 else:
                     await ctx.respond(f"{user.mention} hat am **{day}.{month}** Geburtstag.", ephemeral=True)
+                    print(f"{ctx.author} hat den Geburtstag von {user} abgefragt.")
             else:
                 await ctx.respond(embed=fail, ephemeral=True)
+                print(f"{ctx.author} hat den Geburtstag von {user} abgefragt.")
 
     @slash_command()
     @commands.has_permissions(administrator=True)
     async def admin_birthday(self, ctx, user: discord.Member, day: int, month: int,
                              year: Option(int, default=None, required=False)):
+        print(f"{ctx.author} hat /admin_birthday ausgeführt")
         if ctx.author.guild_permissions.administrator:
             async with aiosqlite.connect("database.db") as db:
 
@@ -180,21 +195,25 @@ class Birthday(commands.Cog):
                 await db.commit()
                 await ctx.respond(f"Der Geburtstag von {user.mention} wurde erfolgreich auf den "
                                   f"**{day}.{month}.{year}** gesetzt.", ephemeral=True)
+                print(f"{ctx.author} hat den Geburtstag von {user} auf den {day}.{month}.{year} geändert.")
         else:
             fail = discord.Embed(title="Fehler", color=discord.Color.red(),
                                  description="Es gab einen Fehler. Entweder du hast ein ungültiges Datum angegeben "
                                              "oder du hast keine Rechte um diesen Befehl auszuführen.")
             await ctx.respond(embed=fail, ephemeral=True)
+            print(f"{ctx.author} hat versucht den Geburtstag von {user} zu setzen.")
 
     @slash_command()
     @commands.has_permissions(administrator=True)
     async def admin_delete_birthday(self, ctx, user: discord.Member):
         async with aiosqlite.connect("database.db") as db:
+            print(f"{ctx.author} hat /admin_delete_birthday ausgeführt")
             embed = discord.Embed(title="Erfolgreich", color=discord.Color.green(),
                                   description=f"Der Geburtstag von {user.mention} wurde erfolgreich gelöscht.")
             await db.execute("DELETE FROM birthday WHERE user_id = ?", (user.id,))
             await db.commit()
             await ctx.respond(embed=embed, ephemeral=True)
+            print(f"{ctx.author} hat den Geburtstag von {user} gelöscht.")
 
 
 def setup(bot):

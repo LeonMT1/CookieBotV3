@@ -137,7 +137,7 @@ class LVLSystem(commands.Cog):
                 await ctx.respond(embed=embed)
                 return
 
-            if leaderboard == "Narichten":
+            if leaderboard == "Nachrichten":
                 async with db.execute(
                         "SELECT user_id, msg_count FROM users WHERE msg_count > 0 ORDER BY msg_count DESC LIMIT ?",
                         (member,)) as cursor:
@@ -199,7 +199,7 @@ class LVLSystem(commands.Cog):
                     await ctx.respond("Du kannst dir nicht selber Kekse geben!", ephemeral=True)
                     return
                 if user == user.bot:
-                    await ctx.respond("Das ist zwar nett gemeint aber die Bots verdienen genung.", ephemeral=True)
+                    await ctx.respond("Das ist zwar nett gemeint aber die Bots verdienen genug.", ephemeral=True)
                     return
                 if result[0] < betrag:
                     await ctx.respond(f"Du hast nicht genug Cookies, du hast nur **{result[0]}** Cookies.",
