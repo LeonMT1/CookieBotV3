@@ -8,3 +8,6 @@ python-dotenv~=1.0.1
 aiosqlite~=0.20.0
 PyYAML~=6.0.1
 Flask~=3.0.3
+transformers~=4.44.0
+replicate~=0.31.0
+openai==0.28

@@ -1,10 +1,8 @@
 import asyncio
-import logging
 import os
 import platform
 from datetime import datetime
 
-import apykuma
 import cpuinfo
 import discord
 import ezcord
@@ -62,12 +60,6 @@ async def on_ready():
     check_ping.start()
     await bot.change_presence(status=discord.Status.online, activity=discord.Game("mit Cookies"))
     await bot.get_channel(logchannel).send(embed=online)
-    await apykuma.start(
-        url="https://status.cookieattack.me/api/push/OA51DhcnrN?status=up&msg=OK&ping=",
-        interval=20,
-        delay=0,
-        handle_exception=lambda e: logging.getLogger("apykuma").exception(e),
-    )
 
 
 @bot.event
@@ -132,6 +124,7 @@ if __name__ == '__main__':
     bot.load_extension("cogs.commands")
     bot.load_extension("cogs.counting")
     # bot.load_extension("cogs.lvlsystem")
+    # bot.load_extension("cogs.ki")
     bot.localize_commands(localization)
     load_dotenv()
-    bot.run(os.getenv("TOKEN"))
+    bot.run(os.getenv("TESTTOKEN"))

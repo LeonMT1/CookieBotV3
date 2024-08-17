@@ -18,17 +18,23 @@ de:
   next_birthdays:
     name: nächste_gerburtstage
     description: Zeige die nächsten Geburtstag.
-  birthday:
+  see_birthday:
     name: geburtstag
     description: Zeige den Geburtstag von einem Nutzer.
   admin_birthday:
     name: admin_geburtstag
     description: ADMIN COMMAND. Mit diesen Command kann von jeden der Geburtstag verändert werden.
+  admin_delete_birthday:
+    name: admin_delete_geburtstag
+    description: ADMIN COMMAND. Mit diesen Command kann von jeden der Geburtstag gelöscht werden.
   ping:
     description: Zeigt die Latenz des Bots.
   mc_skin:
     name: mc_skin
     description: Zeigt den Skin von einem Minecraft Spieler.
+  help:
+    name: hilfe
+    description: Zeigt alle Commands an.
 
 en:
   set_birthday:
@@ -50,14 +56,20 @@ en:
   next_birthdays:
     name: next_birthdays
     description: Show the next birthdays.
-  birthday:
+  see_birthday:
     name: birthday
     description: Show the birthday of a user.
   admin_birthday:
     name: admin_birthday
     description: ADMIN COMMAND. With this command the birthday of everyone can be changed.
+  admin_delete_birthday:
+    name: admin_delete_birthday
+    description: ADMIN COMMAND. With this command the birthday of everyone can be deleted.
   ping:
     description: Shows the latancy of the Bot.
   mc_skin:
     name: mc_skin
     description: Shows the skin of a Minecraft player.
+  help:
+    name: help
+    description: Shows all commands.
