@@ -20,47 +20,60 @@ class CountingCog(commands.Cog):
             await asyncio.sleep(0.3)
             print("""            counting.py      ✅""")
             async with db.execute("SELECT count FROM counting") as cursor:
-                count = await cursor.fetchone()
-                if count is None:
+                row = await cursor.fetchone()
+                if row is None:
                     self.count = 0
                     await db.execute("INSERT INTO counting (count) VALUES (0)")
+                    await db.commit()
                 else:
-                    self.count = count[0]
+                    self.count = row[0]
             if self.count == 0:
                 await self.bot.get_channel(self.channel).send("**0**")
 
     @commands.Cog.listener()
     async def on_message(self, message):
         async with aiosqlite.connect("database.db") as db:
-            if message.author.bot:
-                return
-            if any(char in message.content for char in ['²', '³', '(', ')']):
-                await message.delete()
-                embed = discord.Embed(title="Unerlaubte Rechenoperation!",
-                                      description=f"Erlaubte Operatoren: +, -, /, *.", color=discord.Color.red())
-                return await message.channel.send(embed=embed, delete_after=5)
-            if 'ㅤ' in message.content.lower():
-                await message.delete()
-            else:
-                embed = discord.Embed(title="Verkackt!", description=f"{message.author.name} hat die Falsche Zahl "
-                                                                     f"geschrieben.", color=discord.Color.red())
-                embed2 = discord.Embed(title="Verkackt!", description=f"{message.author.name} du kannst nicht alleine "
-                                                                      f"Zählen du Egoist.")
-                if message.channel.id == self.channel:
-                    if message.content.replace(' ', '').isdigit():
-                        if self.previous_author == message.author:
-                            self.count = 0
-                            await db.execute("UPDATE counting SET count = 0")
-                            await db.commit()
-                            await message.channel.send(embed=embed2)
-                            await message.channel.send("**0**")
-                        elif int(message.content) == self.count + 1:
+            if message.channel.id == self.channel:
+                if message.author.bot:
+                    return
+                if any(char in message.content for char in ['²', '³', '(', ')']) or 'ㅤ' in message.content.lower():
+                    await message.delete()
+                    embed = discord.Embed(title="Unerlaubte Rechenoperation!",
+                                          description="Erlaubte Operatoren: +, -, /, *.", color=discord.Color.red())
+                    return await message.channel.send(embed=embed, delete_after=5)
+
+                embed = discord.Embed(title="Verkackt!", description=f"{message.author.name} hat die Falsche Zahl geschrieben.", color=discord.Color.red())
+                embed2 = discord.Embed(title="Verkackt!", description=f"{message.author.name} du kannst nicht alleine Zählen du Egoist.")
+
+                if message.content.replace(' ', '').isdigit():
+                    if self.previous_author == message.author:
+                        self.count = 0
+                        await db.execute("UPDATE counting SET count = 0")
+                        await db.commit()
+                        await message.channel.send(embed=embed2)
+                        await message.channel.send("**0**")
+                    elif int(message.content) == self.count + 1:
+                        self.count += 1
+                        await db.execute("UPDATE counting SET count = count + 1")
+                        await db.commit()
+                        self.previous_author = message.author
+                        await message.add_reaction('✅')
+                    else:
+                        self.count = 0
+                        await db.execute("UPDATE counting SET count = 0")
+                        await db.commit()
+                        self.previous_author = None
+                        await message.channel.send(embed=embed)
+                        await message.channel.send("**0**")
+                elif all(char.isdigit() or char in '+-*/() ' for char in message.content):
+                    try:
+                        result = eval(message.content)
+                        if result == self.count + 1:
                             self.count += 1
                             await db.execute("UPDATE counting SET count = count + 1")
                             await db.commit()
                             self.previous_author = message.author
                             await message.add_reaction('✅')
-                            await db.commit()
                         else:
                             self.count = 0
                             await db.execute("UPDATE counting SET count = 0")
@@ -68,30 +81,13 @@ class CountingCog(commands.Cog):
                             self.previous_author = None
                             await message.channel.send(embed=embed)
                             await message.channel.send("**0**")
-                    elif all(char.isdigit() or char in '+-*/() ' for char in message.content):
-                        try:
-                            result = eval(message.content)
-                            if result == self.count + 1:
-                                self.count += 1
-                                await db.execute("UPDATE counting SET count = count + 1")
-                                await db.commit()
-                                self.previous_author = message.author
-                                await message.add_reaction('✅')
-                                await db.commit()
-                            else:
-                                self.count = 0
-                                await db.execute("UPDATE counting SET count = 0")
-                                await db.commit()
-                                self.previous_author = None
-                                await message.channel.send(embed=embed)
-                                await message.channel.send("**0**")
-                        except Exception:
-                            self.count = 0
-                            await db.execute("UPDATE counting SET count = 0")
-                            await db.commit()
-                            self.previous_author = None
-                            await message.channel.send(embed=embed)
-                            await message.channel.send("**0**")
+                    except Exception:
+                        self.count = 0
+                        await db.execute("UPDATE counting SET count = 0")
+                        await db.commit()
+                        self.previous_author = None
+                        await message.channel.send(embed=embed)
+                        await message.channel.send("**0**")
 
 
 def setup(bot):

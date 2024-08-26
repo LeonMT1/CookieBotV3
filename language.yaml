@@ -86,6 +86,13 @@ de:
         streamer:
           name: streamer
           description: Der Streamer den du anzeigen willst.
+  avatar:
+    name: avatar
+    description: Zeigt das Profilbild von einem Nutzer.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer von dem du das Profilbild sehen willst.
 
 en:
   set_birthday:
@@ -175,3 +182,10 @@ en:
         streamer:
           name: streamer
           description: The streamer you want to show.
+  avatar:
+    name: avatar
+    description: Shows the profile picture of a user.
+    options:
+        user:
+            name: user
+            description: The user from which you want to see the profile picture.

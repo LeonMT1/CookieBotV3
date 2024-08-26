@@ -43,6 +43,24 @@ class Commands(commands.Cog):
             await ctx.send(embed=embed, view=view)
         print(f"{ctx.author} wurde der Skin von {username} gesendet mit den Render-Parameter {render}")
 
+    @slash_command()
+    async def avatar(self, ctx, user: Option(discord.Member, required=False)):
+        print(f"{ctx.author} hat /avatar ausgeführt")
+        if not user:
+            user = ctx.author
+        embed = discord.Embed(
+            title=f"Avatar von {user}",
+            color=discord.Color.random()
+        )
+        embed.set_image(url=user.display_avatar.url)
+
+        button = discord.ui.Button(label="Download Avatar", url=user.display_avatar.url)
+        view = discord.ui.View()
+        view.add_item(button)
+
+        await ctx.respond(embed=embed, view=view, ephemeral=True)
+        print(f"{ctx.author} wurde der Avatar von {user} gesendet")
+
 
 def setup(bot):
     bot.add_cog(Commands(bot))
