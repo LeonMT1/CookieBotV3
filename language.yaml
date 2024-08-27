@@ -93,6 +93,55 @@ de:
         user:
             name: nutzer
             description: Der Nutzer von dem du das Profilbild sehen willst.
+  warn:
+    name: warn
+    description: Verwarne einen Nutzer.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer den du verwarnen willst.
+        reason:
+            name: grund
+            description: Der Grund der Verwarnung.
+  warnings:
+    name: warnings
+    description: Zeige die Verwarnungen von einem Nutzer.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer von dem du die Verwarnungen sehen willst.
+  delwarn:
+    name: delwarn
+    description: Lösche eine Verwarnung von einem Nutzer.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer von dem du die Verwarnung löschen willst.
+        warn_id:
+            name: warn_id
+            description: Die ID der Verwarnung die du löschen willst.
+  allwarnings:
+    name: allewarnings
+    description: Zeige alle Verwarnungen an.
+  set_punishment:
+    name: setze_strafe
+    description: Setze oder verändere die Strafe anhand der Anzahl der Verwarnungen.
+    options:
+        warn_count:
+            name: warn_anzahl
+            description: Die Anzahl der Verwarnungen.
+        punishment_type:
+            name: strafe
+            description: Die Strafe die du setzen willst.
+        duration:
+            name: dauer
+            description: Die Dauer der Strafe.
+  show_punishment:
+    name: zeige_strafen
+    description: Zeige die festgelegten Strafen.
+  del_punishment:
+    name: lösche_strafe
+    description: Lösche alle festgelegten Strafen.
 
 en:
   set_birthday:
@@ -189,3 +238,52 @@ en:
         user:
             name: user
             description: The user from which you want to see the profile picture.
+  warn:
+    name: warn
+    description: Warn a user.
+    options:
+        user:
+            name: user
+            description: The user you want to warn.
+        reason:
+            name: reason
+            description: The reason of the warning.
+  warnings:
+    name: warnings
+    description: Show the warnings of a user.
+    options:
+        user:
+            name: user
+            description: The user from which you want to see the warnings.
+  delwarn:
+    name: delwarn
+    description: Delete a warning of a user.
+    options:
+        user:
+            name: user
+            description: The user from which you want to delete the warning.
+        warn_id:
+            name: warn_id
+            description: The ID of the warning you want to delete.
+  allwarnings:
+    name: allwarnings
+    description: Show all warnings.
+  set_punishment:
+    name: set_punishment
+    description: Set or change the punishment based on the number of warnings.
+    options:
+        warn_count:
+            name: warn_count
+            description: The number of warnings.
+        punishment_type:
+            name: punishment_type
+            description: The punishment you want to set.
+        duration:
+            name: duration
+            description: The duration of the punishment.
+  show_punishment:
+    name: show_punishment
+    description: Show the set punishments.
+  del_punishment:
+    name: del_punishment
+    description: Delete all set punishments.

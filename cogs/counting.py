@@ -16,7 +16,8 @@ class CountingCog(commands.Cog):
     async def on_ready(self):
         async with aiosqlite.connect("database.db") as db:
             await db.execute("""CREATE TABLE IF NOT EXISTS counting (
-                                count INTEGER PRIMARY KEY)""")
+                                count INTEGER PRIMARY KEY,
+                                highscore INTEGER DEFAULT 0)""")
             await asyncio.sleep(0.3)
             print("""            counting.py      ✅""")
             async with db.execute("SELECT count FROM counting") as cursor:
@@ -28,7 +29,9 @@ class CountingCog(commands.Cog):
                 else:
                     self.count = row[0]
             if self.count == 0:
-                await self.bot.get_channel(self.channel).send("**0**")
+                async with db.execute("SELECT highscore FROM counting") as cursor:
+                    cursor = await cursor.fetchone()
+                    await self.bot.get_channel(self.channel).send(f"**0** | Highscore: {cursor[0]}")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -47,47 +50,57 @@ class CountingCog(commands.Cog):
 
                 if message.content.replace(' ', '').isdigit():
                     if self.previous_author == message.author:
-                        self.count = 0
-                        await db.execute("UPDATE counting SET count = 0")
-                        await db.commit()
-                        await message.channel.send(embed=embed2)
-                        await message.channel.send("**0**")
+                        async with db.execute("SELECT highscore FROM counting") as cursor:
+                            cursor = await cursor.fetchone()
+                            self.count = 0
+                            await db.execute("UPDATE counting SET count = 0")
+                            await db.commit()
+                            await message.channel.send(embed=embed2)
+                            await message.channel.send(f"**0** | Highscore: {cursor[0]}")
                     elif int(message.content) == self.count + 1:
                         self.count += 1
                         await db.execute("UPDATE counting SET count = count + 1")
+                        await db.execute("UPDATE counting SET highscore = count WHERE count > highscore")
                         await db.commit()
                         self.previous_author = message.author
                         await message.add_reaction('✅')
                     else:
-                        self.count = 0
-                        await db.execute("UPDATE counting SET count = 0")
-                        await db.commit()
-                        self.previous_author = None
-                        await message.channel.send(embed=embed)
-                        await message.channel.send("**0**")
+                        async with db.execute("SELECT highscore FROM counting") as cursor:
+                            cursor = await cursor.fetchone()
+                            self.count = 0
+                            await db.execute("UPDATE counting SET count = 0")
+                            await db.commit()
+                            self.previous_author = None
+                            await message.channel.send(embed=embed)
+                            await message.channel.send(f"**0** | Highscore: {cursor[0]}")
                 elif all(char.isdigit() or char in '+-*/() ' for char in message.content):
                     try:
                         result = eval(message.content)
                         if result == self.count + 1:
                             self.count += 1
                             await db.execute("UPDATE counting SET count = count + 1")
+                            await db.execute("UPDATE counting SET highscore = count WHERE count > highscore")
                             await db.commit()
                             self.previous_author = message.author
                             await message.add_reaction('✅')
                         else:
+                            async with db.execute("SELECT highscore FROM counting") as cursor:
+                                cursor = await cursor.fetchone()
+                                self.count = 0
+                                await db.execute("UPDATE counting SET count = 0")
+                                await db.commit()
+                                self.previous_author = None
+                                await message.channel.send(embed=embed)
+                                await message.channel.send(f"**0** | Highscore: {cursor[0]}")
+                    except Exception:
+                        async with db.execute("SELECT highscore FROM counting") as cursor:
+                            cursor = await cursor.fetchone()
                             self.count = 0
                             await db.execute("UPDATE counting SET count = 0")
                             await db.commit()
                             self.previous_author = None
                             await message.channel.send(embed=embed)
-                            await message.channel.send("**0**")
-                    except Exception:
-                        self.count = 0
-                        await db.execute("UPDATE counting SET count = 0")
-                        await db.commit()
-                        self.previous_author = None
-                        await message.channel.send(embed=embed)
-                        await message.channel.send("**0**")
+                            await message.channel.send(f"**0** | Highscore: {cursor[0]}")
 
 
 def setup(bot):

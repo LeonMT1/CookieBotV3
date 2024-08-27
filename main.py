@@ -1,16 +1,50 @@
-import asyncio
 import os
+import sys
 import platform
 from datetime import datetime
+import logging
+import asyncio
+import re
 
 import cpuinfo
 import discord
 import ezcord
+import psutil
 import pytz
 import yaml
 from colorama import Fore
 from discord.ext import tasks
 from dotenv import load_dotenv
+
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+log_filename = datetime.now().strftime('logs/log_%Y-%m-%d_%H-%M-%S.log')
+
+ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+
+
+class DualStream:
+    def __init__(self, stream1, stream2):
+        self.stream1 = stream1
+        self.stream2 = stream2
+
+    def write(self, message):
+        self.stream1.write(message)
+        self.stream2.write(ansi_escape.sub('', message))
+
+    def flush(self):
+        self.stream1.flush()
+        self.stream2.flush()
+
+
+log_file = open(log_filename, 'a', encoding='utf-8')
+
+sys.stdout = DualStream(sys.stdout, log_file)
+sys.stderr = DualStream(sys.stderr, log_file)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[logging.FileHandler(log_filename, encoding='utf-8'), logging.StreamHandler(sys.stdout)])
 
 activity = discord.Activity(type=discord.ActivityType.playing, name="mit Cookies.")
 
@@ -22,9 +56,9 @@ warnping = 250  # Ab welchen Ping soll eine Warnung gesendet werden?
 checkping = 180  # Wie oft soll der Ping überprüft werden? (in Sekunden)
 logchannel = 825340653378338837  # Log channel
 importantlogchannel = 1162660936725839952  # Wichtige Lognachrichten
-guild_id = 724602228505313311  # Server ID
-welcome_channel = 963739194331631637  # Willkommenschannel
-de = pytz.timezone('Europe/Berlin')  # Zeitzone
+guild_id = 724602228505313311
+welcome_channel = 963739194331631637
+de = pytz.timezone('Europe/Berlin')
 
 
 @tasks.loop(seconds=checkping)
@@ -41,7 +75,14 @@ async def check_ping():
 async def on_ready():
     print(f"{bot.user} ist nun online")
     print(f" OS: {Fore.CYAN}{platform.platform()} / {platform.release()}{Fore.RESET}")
-    print(f" CPU: {Fore.CYAN}{cpuinfo.get_cpu_info()['brand_raw']}{Fore.RESET}")
+    print(f" CPU: {Fore.CYAN}{cpuinfo.get_cpu_info()['brand_raw']}")
+    print(f"  |  Cores: {Fore.CYAN}{psutil.cpu_count(logical=False)} and Threads: {Fore.CYAN}{psutil.cpu_count()}")
+    print(f"  |  Usage: {Fore.CYAN}{psutil.cpu_percent(interval=1)}%")
+    print(f"  |  Frequency: {round(psutil.cpu_freq().current)} MHz{Fore.RESET}")
+    print(f" RAM: {Fore.CYAN}{round(psutil.virtual_memory().total / 1024 ** 3)} GB")
+    print(f"  |  Usage: {Fore.CYAN}{round(psutil.virtual_memory().percent)}{Fore.RESET}%")
+    print(f" Disk: {Fore.CYAN}{round(psutil.disk_usage('/').total / 1024 ** 3)} GB")
+    print(f"  |  Usage: {Fore.CYAN}{round(psutil.disk_usage('/').percent)}%{Fore.RESET}")
     print(" Python Version " + Fore.YELLOW + str(platform.python_version()) + Fore.WHITE)
     print(f"Server: {Fore.CYAN}{len(bot.guilds)}{Fore.RESET} | Users: {Fore.CYAN}{len(bot.users)}{Fore.RESET}")
     print("""
@@ -115,6 +156,7 @@ async def on_member_remove(member):
     else:
         return
 
+
 with open("language.yaml", encoding="utf-8") as file:
     localization = yaml.safe_load(file)
 
@@ -126,6 +168,8 @@ if __name__ == '__main__':
     # bot.load_extension("cogs.lvlsystem")
     bot.load_extension("cogs.tictactoe")
     bot.load_extension("cogs.moderation")
+    bot.load_extension("cogs.warnsystem")
     bot.localize_commands(localization)
     load_dotenv()
     bot.run(os.getenv("TESTTOKEN"))
+    # /kill testen

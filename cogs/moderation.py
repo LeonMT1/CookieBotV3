@@ -12,7 +12,7 @@ class Moderation(commands.Cog):
     async def on_ready(self):
         print("""            moderation.py    ✅""")
 
-    @slash_command(description="Aktivität vom Bot verändern", name="aktivität")
+    @slash_command()
     @commands.has_permissions(administrator=True)
     async def activity(self, ctx,
                        typ: Option(str, choices=["game", "stream"]), name: Option(str),
