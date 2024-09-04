@@ -69,6 +69,7 @@ class Commands(commands.Cog):
 
     @slash_command()
     async def server_info(self, ctx):
+        print(f"{ctx.author} hat /server_info ausgeführt")
         await ctx.defer()
 
         embed = discord.Embed(
@@ -92,28 +93,39 @@ class Commands(commands.Cog):
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def kill(self, ctx, member: discord.Member):
         print(f"{ctx.author.name} hat den Befehl /kill genutzt")
-        key = "AIzaSyDHmg80hvYQrUvrTEee8ARuq9X-6hIE1EM"
-        params = {"q": "kill",
-                  "key": key,
-                  "limit": 30,
-                  "media_filter": "gif"}
 
-        result = requests.get(f"https://tenor.googleapis.com/v2/search", params=params)
+        key = "AIzaSyDHmg80hvYQrUvrTEee8ARuq9X-6hIE1EM"
+        params = {"q": "kill", "key": key, "limit": 30, "media_filter": "gif"}
+        result = requests.get("https://tenor.googleapis.com/v2/search", params=params)
         data = result.json()
-        number = random.randint(0, 30)
-        url = data["results"][number]["media_formats"]["gif"]["url"]
+        url = data["results"][random.randint(0, 30)]["media_formats"]["gif"]["url"]
+        chance = random.randint(0, 100)
 
         if member == self.bot.user:
-            embot = discord.Embed(title="Ich bekomme alles mit!", color=discord.Color.orange(),
-                                  description="Der Bot so krass, das er dich umgebracht hat!")
-            embot.set_footer(text="Gif von Tenor")
-            embot.set_image(
-                url="https://cookieattack.me/img/notbywebsite/cookiekiller.gif")
+            embed = discord.Embed(title="Ich bekomme alles mit!", color=discord.Color.red(),
+                                  description="Der Bot ist so krass, das er dich umgebracht hat!")
+            embed.set_footer(text="Gif von DeepAI.org")
+            embed.set_image(url="https://cookieattack.me/img/notbywebsite/cookiekiller.gif")
+            await ctx.respond(embed=embed)
+            return print(f"{ctx.author} hat versucht den Bot zu töten.")
 
-        embed = discord.Embed(title=f"{ctx.author.name} hat {member} umgebracht!", color=discord.Color.darker_gray())
+        if member == ctx.author:
+            embed = discord.Embed(title="Selbstmord ist keine Lösung <3", color=discord.Color.red())
+            await ctx.respond(embed=embed, ephemeral=True)
+            return print(f"{ctx.author} hat versucht sich selbst zu töten.")
+
+        if chance == 100:
+            embed = discord.Embed(title=f"Dein Opfer {member.name} hat dich umgebracht!", color=discord.Color.red())
+            embed.set_footer(text="Gif von Tenor")
+            embed.set_image(url="https://media1.tenor.com/m/p_Xhnn1OJUsAAAAC/fight-couple-fighting.gif")
+            await ctx.respond(embed=embed)
+            return print(f"{ctx.author} wurde von seinem Opfer umgebracht.")
+
+        embed = discord.Embed(title=f"{ctx.author.name} hat {member.name} umgebracht!", color=discord.Color.darker_gray())
         embed.set_image(url=url)
         embed.set_footer(text="Gif von Tenor")
         await ctx.respond(embed=embed)
+        print(f"{ctx.author} hat {member} getötet.")
 
 
 def setup(bot):

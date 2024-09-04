@@ -142,6 +142,43 @@ de:
   del_punishment:
     name: lösche_strafe
     description: Lösche alle festgelegten Strafen.
+  kill:
+    name: kill
+    description: Töte einen Nutzer.
+    options:
+        user:
+            name: nutzer
+            description: Der Nutzer den du töten willst.
+  serverinfo:
+    name: serverinfo
+    description: Zeigt Informationen über den Server an.
+  leaderboard:
+    name: rangliste
+    description: Zeigt eine ausgewählte Rangliste.
+    options:
+      leaderboard:
+        name: rangliste
+        description: Welche Rangliste soll angezeigt werden?
+      member:
+        name: nutzer
+        description: Wie viele Nutzer sollen angezeigt werden
+  gift:
+    name: geschenk
+    description: Schenke einen anderen Nutzer Cookies.
+    options:
+      user:
+        name: nutzer
+        description: Welchen Nutzer möchtest du Cookies schenken?
+      betrag:
+        name: betrag
+        description: Wie viele Cookies möchtest du verschenken?
+  rank:
+    name: rang
+    description: Zeige deinen oder den Rang von anderen.
+    options:
+      member:
+        name: nutzer
+        description: Von welchen Nutzer möchtest du den Rang wissen?
 
 en:
   set_birthday:
@@ -287,3 +324,39 @@ en:
   del_punishment:
     name: del_punishment
     description: Delete all set punishments.
+  kill:
+    name: kill
+    description: Kill a user.
+    options:
+        user:
+            name: user
+            description: The user you want to kill.
+  server_info:
+    description: Shows Information's about the Server.
+  leaderboard:
+    name: leaderboard
+    description: Shows a selected Leaderboard.
+    options:
+      leaderboard:
+        name: leaderboard
+        description: Wich Leaderboard should be shown?
+      member:
+        name: member
+        description: How many Members should be displayed?
+  gift:
+    name: gift
+    description: Give another User Cookies.
+    options:
+      user:
+        name: user
+        description: Wich User do you want to give Cookies?
+      betrag:
+        name: amount
+        description: How much Cookies do you want to give?
+  rank:
+    name: rank
+    description: Display the rank of u or a other User.
+    options:
+      member:
+        name: user
+        description: From wich User do you want to know the Rank?

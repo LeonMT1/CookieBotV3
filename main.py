@@ -165,11 +165,10 @@ if __name__ == '__main__':
     bot.load_extension("cogs.birthday")
     bot.load_extension("cogs.commands")
     bot.load_extension("cogs.counting")
-    # bot.load_extension("cogs.lvlsystem")
+    bot.load_extension("cogs.lvlsystem")
     bot.load_extension("cogs.tictactoe")
     bot.load_extension("cogs.moderation")
     bot.load_extension("cogs.warnsystem")
     bot.localize_commands(localization)
     load_dotenv()
     bot.run(os.getenv("TESTTOKEN"))
-    # /kill testen
