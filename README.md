@@ -1,0 +1,1 @@
+The CookieBotV3 is a Discord Bot that has many features.
