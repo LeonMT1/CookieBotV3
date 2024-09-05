@@ -1,3 +1,5 @@
+import asyncio
+import datetime
 import random
 
 import aiosqlite
@@ -37,7 +39,7 @@ class LVLSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        async with aiosqlite.connect("database.db") as db:
+        async with aiosqlite.connect(self.DB) as db:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -45,7 +47,9 @@ class LVLSystem(commands.Cog):
                 xp INTEGER DEFAULT 0,
                 cookies INTEGER DEFAULT 0,
                 call_sec INTEGER DEFAULT 0,
-                crate INTEGER DEFAULT 0)""")
+                crate INTEGER DEFAULT 0,
+                streak INTEGER DEFAULT 0,
+                last_daily TEXT DEFAULT NULL)""")
             print("""            lvlsystem.py     ✅""")
 
     async def check_user(self, user_id):
@@ -62,7 +66,7 @@ class LVLSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        async with aiosqlite.connect("database.db") as db:
+        async with aiosqlite.connect(self.DB) as db:
             guild: discord.Guild = self.bot.get_guild(self.guild)
             rolle: discord.Role = guild.get_role(self.role)
             rndm = random.randint(1, 100)
@@ -116,7 +120,7 @@ class LVLSystem(commands.Cog):
                           member: Option(str, description="Sage wie viele Member angezeigt werden sollen", default=10)):
         desc = ""
         counter = 1
-        async with aiosqlite.connect("database.db") as db:
+        async with aiosqlite.connect(self.DB) as db:
 
             if leaderboard == "Cookies":
                 async with db.execute(
@@ -159,7 +163,7 @@ class LVLSystem(commands.Cog):
     @slash_command(description="Gebe einen anderen User Kekse!")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def gift(self, ctx, user: discord.Member, betrag: Option(int, description="Wie viel möchtest du geben?")):
-        async with aiosqlite.connect("database.db") as db:
+        async with aiosqlite.connect(self.DB) as db:
             async with db.execute("SELECT cookies FROM users WHERE user_id = ?", (ctx.author.id,)) as cursor:
                 result = await cursor.fetchone()
                 print(f"{ctx.author} hat /give gemacht")
@@ -199,7 +203,7 @@ class LVLSystem(commands.Cog):
         print(f"{ctx.author.name} hat /rank gemacht.")
         if member is None:
             member = ctx.author
-        async with aiosqlite.connect("database.db") as db:
+        async with aiosqlite.connect(self.DB) as db:
             async with db.execute("SELECT cookies FROM users WHERE user_id = ?", (member.id,)) as cursor:
                 cookies = await cursor.fetchone()
 
@@ -225,16 +229,156 @@ class LVLSystem(commands.Cog):
     @slash_command()
     @commands.cooldown(1, 86400, commands.BucketType.user)
     async def daily(self, ctx):
-        async with aiosqlite.connect("database.db") as db:
+        async with aiosqlite.connect(self.DB) as db:
             print(f"{ctx.author} hat /daily gemacht")
+            async with db.execute("SELECT streak, last_daily FROM users WHERE user_id = ?", (ctx.author.id,)) as cursor:
+                result = await cursor.fetchone()
+                streak = result[0] if result else 0
+                last_daily = result[1] if result else None
+
+            now = datetime.datetime.utcnow()
+            if last_daily:
+                last_daily = datetime.datetime.strptime(last_daily, "%Y-%m-%d %H:%M:%S")
+                if now.date() == last_daily.date():
+                    await ctx.respond("Du hast bereits deine tägliche Belohnung heute abgeholt.", ephemeral=True)
+                    return
+                if (now - last_daily).days == 1:
+                    streak += 1
+                elif (now - last_daily).days > 1:
+                    streak = 1
+            else:
+                streak = 1
+
+            await db.execute("UPDATE users SET streak = ?, last_daily = ? WHERE user_id = ?",
+                             (streak, now.strftime("%Y-%m-%d %H:%M:%S"), ctx.author.id))
+            await db.commit()
+
             cookies = random.randint(5, 15)
+            cookies = cookies + streak
+            if streak > 0:
+                txtstreak = f"Du bekommst **{cookies} Cookies & 1 Kiste**\nStreak: **{streak}** Tage �"
+            else:
+                txtstreak = f"Du bekommst **{cookies} Cookies & 1 Kiste**"
             embed = discord.Embed(title="Tägliche Belohnung!", color=discord.Color.green(),
-                                  description=f"Du bekommst **{cookies} & 1 Kiste**")
+                                  description=txtstreak)
             await db.execute("UPDATE users SET crate = crate + 1 WHERE user_id = ?", (ctx.author.id,))
             await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (cookies, ctx.author.id))
             await db.commit()
             await ctx.respond(embed=embed)
-            print(f"{ctx.author} hat durch /daily {cookies} Cookies bekommen.")
+            print(f"{ctx.author} hat durch /daily {cookies} Cookies bekommen und hat eine Streak von {streak} Tagen.")
+
+    @slash_command()
+    async def crates_storage(self, ctx):
+        async with aiosqlite.connect(self.DB) as db:
+            async with db.execute("SELECT crate FROM users WHERE user_id = ?", (ctx.author.id,)) as cursor:
+                result = await cursor.fetchone()
+                if result is None or result[0] == 0:
+                    await ctx.respond("Du hast keine Kisten.", ephemeral=True)
+                    return
+                embed = discord.Embed(title="Kisten", description=f"Du hast **{result[0]}** Kisten.",
+                                      color=discord.Color.green())
+                await ctx.respond(embed=embed, ephemeral=True)
+
+    @slash_command()
+    async def crate(self, ctx):
+        async with aiosqlite.connect(self.DB) as db:
+            print(f"{ctx.author} hat /crate gemacht")
+            async with db.execute("SELECT crate FROM users WHERE user_id = ?", (ctx.author.id,)) as cursor:
+                result = await cursor.fetchone()
+                if result is None or result[0] == 0:
+                    await ctx.respond("Du hast keine Kisten.", ephemeral=True)
+                    return
+                await db.execute("UPDATE users SET crate = crate - 1 WHERE user_id = ?", (ctx.author.id,))
+                await db.commit()
+                cookies = random.randint(10, 30)
+                await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (cookies, ctx.author.id))
+                await db.commit()
+                embed = discord.Embed(title="Kiste geöffnet!", color=discord.Color.green(),
+                                      description=f"Du hast **{cookies}** Cookies erhalten!")
+                loading_message = await ctx.respond("📦 Du öffnest eine Kiste...")
+                progress_bar = "🟥" * 10
+                for i in range(11):
+                    filled_bar = "🟩" * i
+                    await loading_message.edit(
+                        content=f"📦 Kiste wird geöffnet...\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
+                    await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
+                await loading_message.edit(content=None, embed=embed)
+                print(f"{ctx.author} hat durch /crate {cookies} Cookies bekommen.")
+
+    @slash_command()
+    @commands.cooldown(1, 21600, commands.BucketType.user)
+    async def hack(self, ctx, member: Option(discord.Member)):
+        print(f"{ctx.author} hat /hack gemacht")
+        async with aiosqlite.connect(self.DB) as db:
+            async with db.execute("SELECT cookies FROM users WHERE user_id = ?", (member.id,)) as cursor:
+                result = await cursor.fetchone()
+            failchance = random.randint(1, 16)
+            cookies = random.randint(3, 13)
+            stages = ["💻 Verbinden mit Server...",
+                      "🔓 Firewall umgehen...",
+                      "📂 Daten extrahieren...",
+                      "🔑 Zugangsdaten entschlüsseln...",
+                      "📡 Verbindung stabilisieren...",
+                      "⏳ Datenübertragung...",
+                      "💾 Lokale Speicherung...",
+                      "🧑‍💻 Zugriff gesichert!"]
+            embed = discord.Embed(title="💻 Hack abgeschlossen!",
+                                  description=f"Erfolgreich **{cookies}** Cookies gestohlen! 🍪",
+                                  color=discord.Color.green())
+            failembed = discord.Embed(title="💻 Hack fehlgeschlagen!",
+                                      description="Der Hack ist leider fehlgeschlagen, hoffentlich erwischt dich "
+                                                  "trotzdem keiner.",
+                                      color=discord.Color.red())
+            if member.bot:
+                embed = discord.Embed(title="Der Bot ist zu stark!",
+                                      description="Du kannst den Bot leider nicht Hacken da seine Firewall zu stark "
+                                                  "ist.",
+                                      color=discord.Color.red())
+                await ctx.author.send(embed=embed, ephemeral=True)
+                return print(f"{ctx.author} hat versucht einen Bot zu hacken")
+
+            elif result[0] is None:
+                await ctx.respond(embed=failembed)
+                failembed.set_footer(text="Es gab einen Fehler mit der Datenbank.")
+                return print(f"!!!{ctx.author} hat versucht {member} zu hacken aber es gab einen Datenbank Fehler!!!")
+
+            elif result[0] < cookies:
+                await ctx.respond(embed=failembed)
+                failembed.set_footer(text=f"Du konntest {member.name} nicht Hacken da er sehr wenig Cookies hat.")
+                return print(f"{ctx.author} hat versucht einen Armen User zu Hacken")
+
+            elif failchance == 1:
+                loading_message = await ctx.respond("💻 Hack wird initialisiert...")
+                progress_bar = "🟥" * 10
+                for i in range(11):
+                    current_stage = stages[min(i, len(stages) - 1)]
+                    filled_bar = "🟩" * i
+                    await loading_message.edit(
+                        content=f"{current_stage}\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
+                    await asyncio.sleep(0.8)
+                await loading_message.edit(content=None, embed=failembed)
+                failembed.set_footer(text="Heute ist einfach nicht dein Tag :(")
+                return print(f"{ctx.author}s Hack scheiterte")
+
+            else:
+                loading_message = await ctx.respond("💻 Hack wird initialisiert...")
+                progress_bar = "🟥" * 10
+                for i in range(11):
+                    current_stage = stages[min(i, len(stages) - 1)]
+                    filled_bar = "🟩" * i
+                    await loading_message.edit(
+                        content=f"{current_stage}\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
+                    await asyncio.sleep(0.8)
+
+                await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?",
+                                 (cookies, member.id))
+                await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
+                                 (cookies, ctx.author.id))
+                await db.commit()
+
+                await loading_message.edit(content=None, embed=embed)
+                print(f"{ctx.author} hat von {member} {cookies} Cookies gehackt")
 
 
 def setup(bot):

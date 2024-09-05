@@ -179,6 +179,22 @@ de:
       member:
         name: nutzer
         description: Von welchen Nutzer möchtest du den Rang wissen?
+  daily:
+    name: daily
+    description: Hole dir deine täglichen Cookies.
+  crates_storage:
+    name: kisten_lager
+    description: Zeige dein Kisten Lager an.
+  crate:
+    name: kiste
+    description: Öffne eine Kiste.
+  hack:
+    name: hack
+    description: Hacke einen Nutzer für seine Kekse.
+    options:
+      member:
+        name: nutzer
+        description: Von welchen Nutzer möchtest du Kekse klauen?
 
 en:
   set_birthday:
@@ -360,3 +376,19 @@ en:
       member:
         name: user
         description: From wich User do you want to know the Rank?
+  daily:
+    name: daily
+    description: Get your daily Cookies.
+  crates_storage:
+    name: crates_storage
+    description: Show your Crates Storage.
+  crate:
+    name: crate
+    description: Open a Crate.
+  hack:
+    name: hack
+    description: Hack Cookies from another User.
+    options:
+      member:
+        name: user
+        description: From wich User do you want to hack cookies?
