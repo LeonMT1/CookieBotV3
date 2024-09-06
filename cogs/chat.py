@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import random
 
@@ -14,7 +13,6 @@ class Chat(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await asyncio.sleep(0.1)
         print("""            chat.py          ✅""")
 
     @commands.Cog.listener()
@@ -51,9 +49,9 @@ class Chat(commands.Cog):
                     user = random.choice(non_bot_members)
 
                 if user:
-                    avatar_url = user.avatar.url if user.avatar else "images/defaultavatar.png"
+                    avatar_url = user.avatar.url if user.avatar else "img/defaultavatar.png"
                 else:
-                    avatar_url = "images/defaultavatar.png"
+                    avatar_url = "img/defaultavatar.png"
 
                 webhook = await message.channel.create_webhook(name="Sudo webhook...",
                                                                reason=f"Frage von {message.author}")

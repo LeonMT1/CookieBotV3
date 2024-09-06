@@ -1,4 +1,3 @@
-import asyncio
 import aiosqlite
 import discord
 import discord.commands
@@ -18,7 +17,6 @@ class CountingCog(commands.Cog):
             await db.execute("""CREATE TABLE IF NOT EXISTS counting (
                                 count INTEGER PRIMARY KEY,
                                 highscore INTEGER DEFAULT 0)""")
-            await asyncio.sleep(0.3)
             print("""            counting.py      ✅""")
             async with db.execute("SELECT count FROM counting") as cursor:
                 row = await cursor.fetchone()
@@ -45,8 +43,11 @@ class CountingCog(commands.Cog):
                                           description="Erlaubte Operatoren: +, -, /, *.", color=discord.Color.red())
                     return await message.channel.send(embed=embed, delete_after=5)
 
-                embed = discord.Embed(title="Verkackt!", description=f"{message.author.name} hat die Falsche Zahl geschrieben.", color=discord.Color.red())
-                embed2 = discord.Embed(title="Verkackt!", description=f"{message.author.name} du kannst nicht alleine Zählen du Egoist.")
+                embed = discord.Embed(title="Verkackt!",
+                                      description=f"{message.author.name} hat die Falsche Zahl geschrieben.",
+                                      color=discord.Color.red())
+                embed2 = discord.Embed(title="Verkackt!",
+                                       description=f"{message.author.name} du kannst nicht alleine Zählen du Egoist.")
 
                 if message.content.replace(' ', '').isdigit():
                     if self.previous_author == message.author:

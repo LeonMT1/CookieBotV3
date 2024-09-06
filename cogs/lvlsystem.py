@@ -49,7 +49,8 @@ class LVLSystem(commands.Cog):
                 call_sec INTEGER DEFAULT 0,
                 crate INTEGER DEFAULT 0,
                 streak INTEGER DEFAULT 0,
-                last_daily TEXT DEFAULT NULL)""")
+                last_daily TEXT DEFAULT NULL,
+                flag_skip INTEGER DEFAULT 0)""")
             print("""            lvlsystem.py     ✅""")
 
     async def check_user(self, user_id):
@@ -283,6 +284,10 @@ class LVLSystem(commands.Cog):
     async def crate(self, ctx):
         async with aiosqlite.connect(self.DB) as db:
             print(f"{ctx.author} hat /crate gemacht")
+            flag = random.randint(1, 10)
+            cookies = random.randint(10, 30)
+            embed = discord.Embed(title="Kiste geöffnet!", color=discord.Color.green(),
+                                  description=f"Du hast **{cookies}** Cookies erhalten!")
             async with db.execute("SELECT crate FROM users WHERE user_id = ?", (ctx.author.id,)) as cursor:
                 result = await cursor.fetchone()
                 if result is None or result[0] == 0:
@@ -290,11 +295,8 @@ class LVLSystem(commands.Cog):
                     return
                 await db.execute("UPDATE users SET crate = crate - 1 WHERE user_id = ?", (ctx.author.id,))
                 await db.commit()
-                cookies = random.randint(10, 30)
                 await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (cookies, ctx.author.id))
                 await db.commit()
-                embed = discord.Embed(title="Kiste geöffnet!", color=discord.Color.green(),
-                                      description=f"Du hast **{cookies}** Cookies erhalten!")
                 loading_message = await ctx.respond("📦 Du öffnest eine Kiste...")
                 progress_bar = "🟥" * 10
                 for i in range(11):
@@ -303,8 +305,25 @@ class LVLSystem(commands.Cog):
                         content=f"📦 Kiste wird geöffnet...\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
                     await asyncio.sleep(0.5)
                 await asyncio.sleep(1)
-                await loading_message.edit(content=None, embed=embed)
-                print(f"{ctx.author} hat durch /crate {cookies} Cookies bekommen.")
+                if flag == 1:
+                    embed = discord.Embed(title="Kiste geöffnet!", color=discord.Color.green(),
+                                          description="Du hast einen Flaggen-Skip erhalten! Du kannst jetzt einmal"
+                                                      " eine Flagge überspringen.")
+                    await db.execute("UPDATE users SET crate = crate - 1 WHERE user_id = ?", (ctx.author.id,))
+                    await db.commit()
+                    await db.execute("UPDATE users SET flag_skip = flag_skip + 1 WHERE user_id = ?",
+                                     (ctx.author.id,))
+                    await db.commit()
+                    await loading_message.edit(content=None, embed=embed)
+                    print(f"{ctx.author} hat durch /crate einen Flaggen-Skip bekommen.")
+                else:
+                    await db.execute("UPDATE users SET crate = crate - 1 WHERE user_id = ?", (ctx.author.id,))
+                    await db.commit()
+                    await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (cookies,
+                                                                                                  ctx.author.id))
+                    await db.commit()
+                    await loading_message.edit(content=None, embed=embed)
+                    print(f"{ctx.author} hat durch /crate {cookies} Cookies bekommen.")
 
     @slash_command()
     @commands.cooldown(1, 21600, commands.BucketType.user)
@@ -315,10 +334,30 @@ class LVLSystem(commands.Cog):
                 result = await cursor.fetchone()
             failchance = random.randint(1, 16)
             cookies = random.randint(3, 13)
+            email = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com", "protonmail.com",
+                     "gmx.de", "web.de", "t-online.de", "freenet.de", "mail.de", "arcor.de", "gmx.net", "hotmail.de",
+                     "yahoo.de", "live.de", "live.com", "me.com", "cookieteam.de", "cookieattack.me"]
+            password = [
+                "123456", "password", "12345678", "qwerty", "123456789", "12345", "1234", "111111", "1234567", "dragon",
+                "123123", "baseball", "abc123", "football", "monkey", "letmein", "696969", "shadow", "master", "666666",
+                "qwertyuiop", "123321", "mustang", "1234567890", "michael", "654321", "pussy", "superman", "1qaz2wsx",
+                "7777777", "fuckyou", "121212", "000000", "qazwsx", "123qwe", "killer", "trustno1", "jordan",
+                "jennifer",
+                "zxcvbnm", "asdfgh", "hunter", "buster", "soccer", "harley", "batman", "andrew", "tigger", "sunshine",
+                "iloveyou", "fuckme", "2000", "charlie", "robert", "thomas", "hockey", "ranger", "daniel", "starwars",
+                "klaster", "112233", "george", "asshole", "computer", "michelle", "jessica", "pepper", "1111", "zxcvbn",
+                "555555", "11111111", "131313", "freedom", "777777", "pass", "fuck", "maggie", "159753", "aaaaaa",
+                "ginger",
+                "princess", "joshua", "cheese", "amanda", "summer", "love", "ashley", "6969", "nicole", "chelsea",
+                "biteme",
+                "matthew", "access", "yankees", "987654321", "dallas", "austin", "thunder", "taylor", "matrix"
+            ]
             stages = ["💻 Verbinden mit Server...",
                       "🔓 Firewall umgehen...",
                       "📂 Daten extrahieren...",
                       "🔑 Zugangsdaten entschlüsseln...",
+                      f"✉ Email: {member.name}@{random.choice(email)}",
+                      f"🔑 Passwort: {random.choice(password)}",
                       "📡 Verbindung stabilisieren...",
                       "⏳ Datenübertragung...",
                       "💾 Lokale Speicherung...",
@@ -356,7 +395,7 @@ class LVLSystem(commands.Cog):
                     filled_bar = "🟩" * i
                     await loading_message.edit(
                         content=f"{current_stage}\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
-                    await asyncio.sleep(0.8)
+                    await asyncio.sleep(random.uniform(0.1, 0.9))
                 await loading_message.edit(content=None, embed=failembed)
                 failembed.set_footer(text="Heute ist einfach nicht dein Tag :(")
                 return print(f"{ctx.author}s Hack scheiterte")
@@ -369,7 +408,7 @@ class LVLSystem(commands.Cog):
                     filled_bar = "🟩" * i
                     await loading_message.edit(
                         content=f"{current_stage}\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
-                    await asyncio.sleep(0.8)
+                    await asyncio.sleep(random.uniform(0.1, 1.9))
 
                 await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?",
                                  (cookies, member.id))

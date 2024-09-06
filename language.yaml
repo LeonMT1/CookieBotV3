@@ -195,6 +195,16 @@ de:
       member:
         name: nutzer
         description: Von welchen Nutzer möchtest du Kekse klauen?
+  skip:
+    name: überspringen
+    description: Überspringe eine Flagge für 5 Cookies.
+  blackjack:
+    name: blackjack
+    description: Starte ein Blackjack Spiel.
+    options:
+      bet:
+        name: einsatz
+        description: Der Einsatz für das Spiel.
 
 en:
   set_birthday:
@@ -392,3 +402,13 @@ en:
       member:
         name: user
         description: From wich User do you want to hack cookies?
+  skip:
+    name: skip
+    description: Skip a Flag for 5 Cookies.
+  blackjack:
+    name: blackjack
+    description: Start a Blackjack game.
+    options:
+      bet:
+        name: bet
+        description: The bet for the game.

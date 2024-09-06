@@ -1,4 +1,3 @@
-import asyncio
 import platform
 import random
 
@@ -18,7 +17,6 @@ class Commands(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await asyncio.sleep(0.3)
         print("""            commands.py      ✅""")
 
     @slash_command()
@@ -121,7 +119,8 @@ class Commands(commands.Cog):
             await ctx.respond(embed=embed)
             return print(f"{ctx.author} wurde von seinem Opfer umgebracht.")
 
-        embed = discord.Embed(title=f"{ctx.author.name} hat {member.name} umgebracht!", color=discord.Color.darker_gray())
+        embed = discord.Embed(title=f"{ctx.author.name} hat {member.name} umgebracht!",
+                              color=discord.Color.darker_gray())
         embed.set_image(url=url)
         embed.set_footer(text="Gif von Tenor")
         await ctx.respond(embed=embed)

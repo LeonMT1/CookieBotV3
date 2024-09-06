@@ -20,7 +20,6 @@ if not os.path.exists('logs'):
     os.makedirs('logs')
 
 log_filename = datetime.now().strftime('logs/log_%Y-%m-%d_%H-%M-%S.log')
-
 ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
 
@@ -88,8 +87,6 @@ async def on_ready():
     print("""
             ━━━Datein━━━━━━Status━━━
             main.py          ✅""")
-    await asyncio.sleep(0.4)
-    print("""            ━━━━━━━━━━━━━━━━━━━━━━━━""")
     online = discord.Embed(
         title='Online',
         description=f'{bot.user} ist online!\nOS: {platform.platform()} / {platform.release()}\n'
@@ -161,6 +158,7 @@ with open("language.yaml", encoding="utf-8") as file:
     localization = yaml.safe_load(file)
 
 if __name__ == '__main__':
+    load_dotenv()
     bot.load_extension("cogs.chat")
     bot.load_extension("cogs.birthday")
     bot.load_extension("cogs.commands")
@@ -169,6 +167,7 @@ if __name__ == '__main__':
     bot.load_extension("cogs.tictactoe")
     bot.load_extension("cogs.moderation")
     bot.load_extension("cogs.warnsystem")
+    bot.load_extension("cogs.flagguess")
+    bot.load_extension("cogs.blackjack")
     bot.localize_commands(localization)
-    load_dotenv()
     bot.run(os.getenv("TESTTOKEN"))
