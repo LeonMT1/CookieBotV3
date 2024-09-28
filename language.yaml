@@ -205,6 +205,9 @@ de:
       bet:
         name: einsatz
         description: Der Einsatz für das Spiel.
+  event:
+    name: event
+    description: Lasse ein zufälliges Event passieren bei den du Cookie bekommen oder verlieren kannst.
 
 en:
   set_birthday:
@@ -412,3 +415,6 @@ en:
       bet:
         name: bet
         description: The bet for the game.
+  event:
+    name: event
+    description: Let a random Event happen where you can get or lose Cookies.

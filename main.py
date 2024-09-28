@@ -168,6 +168,6 @@ if __name__ == '__main__':
     bot.load_extension("cogs.moderation")
     bot.load_extension("cogs.warnsystem")
     bot.load_extension("cogs.flagguess")
-    bot.load_extension("cogs.blackjack")
+    bot.load_extension("cogs.gamba")
     bot.localize_commands(localization)
     bot.run(os.getenv("TESTTOKEN"))

@@ -58,6 +58,7 @@ class CountingCog(commands.Cog):
                             await db.commit()
                             await message.channel.send(embed=embed2)
                             await message.channel.send(f"**0** | Highscore: {cursor[0]}")
+                            await db.close()
                     elif int(message.content) == self.count + 1:
                         self.count += 1
                         await db.execute("UPDATE counting SET count = count + 1")
@@ -65,6 +66,7 @@ class CountingCog(commands.Cog):
                         await db.commit()
                         self.previous_author = message.author
                         await message.add_reaction('✅')
+                        await db.close()
                     else:
                         async with db.execute("SELECT highscore FROM counting") as cursor:
                             cursor = await cursor.fetchone()
@@ -74,6 +76,7 @@ class CountingCog(commands.Cog):
                             self.previous_author = None
                             await message.channel.send(embed=embed)
                             await message.channel.send(f"**0** | Highscore: {cursor[0]}")
+                            await db.close()
                 elif all(char.isdigit() or char in '+-*/() ' for char in message.content):
                     try:
                         result = eval(message.content)
@@ -84,6 +87,7 @@ class CountingCog(commands.Cog):
                             await db.commit()
                             self.previous_author = message.author
                             await message.add_reaction('✅')
+                            await db.close()
                         else:
                             async with db.execute("SELECT highscore FROM counting") as cursor:
                                 cursor = await cursor.fetchone()
@@ -93,6 +97,7 @@ class CountingCog(commands.Cog):
                                 self.previous_author = None
                                 await message.channel.send(embed=embed)
                                 await message.channel.send(f"**0** | Highscore: {cursor[0]}")
+                                await db.close()
                     except Exception:
                         async with db.execute("SELECT highscore FROM counting") as cursor:
                             cursor = await cursor.fetchone()
@@ -102,6 +107,7 @@ class CountingCog(commands.Cog):
                             self.previous_author = None
                             await message.channel.send(embed=embed)
                             await message.channel.send(f"**0** | Highscore: {cursor[0]}")
+                            await db.close()
 
 
 def setup(bot):

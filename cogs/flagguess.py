@@ -10,7 +10,7 @@ import random
 class FlagGuessingCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.guessing_channel = 1170292523730739250
+        self.guessing_channel = 1163557292092956765
         self.flag_dict = {
             "🇦🇫": "Afghanistan",
             "🇦🇱": "Albanien",
@@ -252,12 +252,14 @@ class FlagGuessingCog(commands.Cog):
                         await message.channel.send(embed=embed)
                         self.cooldown = True
                         await self.start_new_game()
+                        await db.close()
                     else:
                         await message.add_reaction('❌')
                         self.count += 1
                         if self.count == 5:
                             await message.channel.send("Du kannst /skip benutzen, um die Flagge zu überspringen.")
                             self.count = 0
+                        await db.close()
 
     @slash_command()
     async def skip(self, ctx):
@@ -281,10 +283,12 @@ class FlagGuessingCog(commands.Cog):
                     await ctx.respond(embed=embed)
                     await self.start_new_game()
                     print(f"{ctx.author} hat die Flagge übersprungen mit einen Flag Skip.")
+                    await db.close()
                 elif cookies < 5:
                     embed = discord.Embed(title="Nicht genügend Cookies!",
                                           description="Du brauchst mindestens 5 Cookies", color=discord.Color.red())
                     await ctx.respond(embed=embed, ephemeral=True)
+                    await db.close()
                     return print(f"{ctx.author} hat nicht genügend Cookies um die Flagge zu skippen.")
                 else:
                     await db.execute("UPDATE users SET cookies = cookies - 5 WHERE user_id = ?", (ctx.author.id,))
@@ -296,6 +300,7 @@ class FlagGuessingCog(commands.Cog):
                     await ctx.respond(embed=embed)
                     await self.start_new_game()
                     print(f"{ctx.author} hat die Flagge übersprungen.")
+                    await db.close()
 
 
 def setup(bot):

@@ -214,6 +214,7 @@ class Birthday(commands.Cog):
             await db.commit()
             await ctx.respond(embed=embed, ephemeral=True)
             print(f"{ctx.author} hat den Geburtstag von {user} gelöscht.")
+            await db.close()
 
 
 def setup(bot):
