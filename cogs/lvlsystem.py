@@ -60,14 +60,12 @@ class LVLSystem(commands.Cog):
         async with aiosqlite.connect(self.DB) as db:
             await db.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (user_id,))
             await db.commit()
-            await db.close()
 
     async def get_xp(self, user_id):
         await self.check_user(user_id)
         async with aiosqlite.connect(self.DB) as db:
             async with db.execute("SELECT xp FROM users WHERE user_id = ?", (user_id,)) as cursor:
                 result = await cursor.fetchone()
-                await db.close()
             return result[0]
 
     @commands.Cog.listener()
@@ -119,7 +117,6 @@ class LVLSystem(commands.Cog):
                                  (lvlcookies, message.author.id))
             await db.commit()
         await message.channel.send(embed=embed)
-        await db.close()
 
     @slash_command(description="Lasse dir die Leaderboards anzeigen!")
     async def leaderboard(self, ctx, leaderboard: Option(str, choices=["Cookies", "Nachrichten", "XP", "Talk", "Memes"],
@@ -140,7 +137,6 @@ class LVLSystem(commands.Cog):
                 embed = discord.Embed(title=f"**{leaderboard} Rangliste**", description=desc,
                                       color=discord.Color.orange())
                 await ctx.respond(embed=embed)
-                await db.close()
                 return
 
             if leaderboard == "Nachrichten":
@@ -154,7 +150,6 @@ class LVLSystem(commands.Cog):
                 embed = discord.Embed(title=f"**{leaderboard} Rangliste**", description=desc,
                                       color=discord.Color.blue())
                 await ctx.respond(embed=embed)
-                await db.close()
                 return
 
             if leaderboard == "XP":
@@ -168,7 +163,6 @@ class LVLSystem(commands.Cog):
                 embed = discord.Embed(title=f"**{leaderboard} Rangliste**", description=desc,
                                       color=discord.Color.green())
                 await ctx.respond(embed=embed)
-                await db.close()
 
     @slash_command(description="Gebe einen anderen User Kekse!")
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -201,7 +195,6 @@ class LVLSystem(commands.Cog):
                     await ctx.respond(embed=embed, ephemeral=True)
                     async with db.execute("SELECT cookies FROM users WHERE user_id = ?", (user.id,)) as cursor2:
                         userresult = await cursor2.fetchone()
-                        await db.close()
                     try:
                         await user.send(f"Du hast von {ctx.author.name} **{betrag}** Cookies bekommen. Du hast jetzt "
                                         f"**{userresult[0]}** Cookies.")
@@ -236,7 +229,6 @@ class LVLSystem(commands.Cog):
                         align="center")
         file = discord.File(fp=background.image_bytes, filename="rank.png")
         await ctx.respond(file=file)
-        await db.close()
 
     @slash_command()
     @commands.cooldown(1, 86400, commands.BucketType.user)
@@ -278,7 +270,6 @@ class LVLSystem(commands.Cog):
             await db.commit()
             await ctx.respond(embed=embed)
             print(f"{ctx.author} hat durch /daily {cookies} Cookies bekommen und hat eine Streak von {streak} Tagen.")
-            await db.close()
 
     @slash_command()
     async def crates_storage(self, ctx):
@@ -291,7 +282,6 @@ class LVLSystem(commands.Cog):
                 embed = discord.Embed(title="Kisten", description=f"Du hast **{result[0]}** Kisten.",
                                       color=discord.Color.green())
                 await ctx.respond(embed=embed, ephemeral=True)
-                await db.close()
 
     @slash_command()
     async def crate(self, ctx):
@@ -329,7 +319,6 @@ class LVLSystem(commands.Cog):
                     await db.commit()
                     await loading_message.edit(content=None, embed=embed)
                     print(f"{ctx.author} hat durch /crate einen Flaggen-Skip bekommen.")
-                    await db.close()
                 else:
                     await db.execute("UPDATE users SET crate = crate - 1 WHERE user_id = ?", (ctx.author.id,))
                     await db.commit()
@@ -338,7 +327,6 @@ class LVLSystem(commands.Cog):
                     await db.commit()
                     await loading_message.edit(content=None, embed=embed)
                     print(f"{ctx.author} hat durch /crate {cookies} Cookies bekommen.")
-                    await  db.close()
 
     @slash_command()
     @commands.cooldown(1, 21600, commands.BucketType.user)
@@ -415,7 +403,6 @@ class LVLSystem(commands.Cog):
 
                 await loading_message.edit(content=None, embed=embed)
                 print(f"{ctx.author} hat von {member} {cookies} Cookies gehackt")
-                await db.close()
 
     @slash_command()
     async def event(self, ctx):
@@ -436,7 +423,6 @@ class LVLSystem(commands.Cog):
             embed = discord.Embed(title="Event", description=story, color=discord.Color.green())
             await ctx.respond(embed=embed)
             print(f"{ctx.author} hat durch /events {cookies_change} Cookies bekommen.")
-            await db.close()
 
 
 def setup(bot):

@@ -1,5 +1,4 @@
 import asyncio
-
 import aiosqlite
 import discord
 from discord import slash_command
@@ -219,7 +218,7 @@ class FlagGuessingCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("""            flagguess.py     ✅""")
+        print("flagguess.py ✅")
         self.guessing_channel = self.bot.get_channel(self.guessing_channel)
         await self.start_new_game()
 
@@ -231,41 +230,39 @@ class FlagGuessingCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        async with aiosqlite.connect(self.db) as db:
-            if self.cooldown is True:
-                return
-            else:
+        if self.cooldown:
+            return
+        if message.author == self.bot.user:
+            return
+        if message.channel == self.guessing_channel and self.current_flag is not None:
+            if message.content.lower() == self.flag_dict[self.current_flag].lower():
                 cookies = random.randint(1, 5)
                 embed = discord.Embed(title="Richtig!",
                                       description=f"**{message.author.name}** hat die Flagge **{self.current_flag}** "
                                                   f"richtig erraten und bekommt dafür **{cookies}** Cookies.",
                                       color=discord.Color.green())
-                if message.author == self.bot.user:
-                    return
-                if message.channel == self.guessing_channel and self.current_flag is not None:
-                    if message.content.lower() == self.flag_dict[self.current_flag].lower():
-                        await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
-                                         (cookies, message.author.id))
-                        await db.commit()
-                        print(f"{message.author} hat eine Flagge erraten.")
-                        await message.add_reaction('✅')
-                        await message.channel.send(embed=embed)
-                        self.cooldown = True
-                        await self.start_new_game()
-                        await db.close()
-                    else:
-                        await message.add_reaction('❌')
-                        self.count += 1
-                        if self.count == 5:
-                            await message.channel.send("Du kannst /skip benutzen, um die Flagge zu überspringen.")
-                            self.count = 0
-                        await db.close()
+                async with aiosqlite.connect(self.db) as db:
+                    await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
+                                     (cookies, message.author.id))
+                    await db.commit()
+                print(f"{message.author} hat eine Flagge erraten.")
+                await message.add_reaction('✅')
+                await message.channel.send(embed=embed)
+                self.cooldown = True
+                await self.start_new_game()
+            else:
+                await message.add_reaction('❌')
+                self.count += 1
+                if self.count == 5:
+                    await message.channel.send("Du kannst /skip benutzen, um die Flagge zu überspringen.")
+                    self.count = 0
 
     @slash_command()
     async def skip(self, ctx):
         async with aiosqlite.connect(self.db) as db:
             print(f"{ctx.author} hat die Flagge übersprungen.")
-            async with db.execute("SELECT cookies, flag_skips FROM users WHERE user_id = ?", (ctx.author.id,)) as cursor:
+            async with db.execute("SELECT cookies, flag_skips FROM users WHERE user_id = ?",
+                                  (ctx.author.id,)) as cursor:
                 result = await cursor.fetchone()
                 if result is None:
                     embed = discord.Embed(title="Fehler", description="Du hast noch keine Cookies!",
@@ -283,12 +280,10 @@ class FlagGuessingCog(commands.Cog):
                     await ctx.respond(embed=embed)
                     await self.start_new_game()
                     print(f"{ctx.author} hat die Flagge übersprungen mit einen Flag Skip.")
-                    await db.close()
                 elif cookies < 5:
                     embed = discord.Embed(title="Nicht genügend Cookies!",
                                           description="Du brauchst mindestens 5 Cookies", color=discord.Color.red())
                     await ctx.respond(embed=embed, ephemeral=True)
-                    await db.close()
                     return print(f"{ctx.author} hat nicht genügend Cookies um die Flagge zu skippen.")
                 else:
                     await db.execute("UPDATE users SET cookies = cookies - 5 WHERE user_id = ?", (ctx.author.id,))
@@ -300,7 +295,6 @@ class FlagGuessingCog(commands.Cog):
                     await ctx.respond(embed=embed)
                     await self.start_new_game()
                     print(f"{ctx.author} hat die Flagge übersprungen.")
-                    await db.close()
 
 
 def setup(bot):

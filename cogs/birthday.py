@@ -4,8 +4,7 @@ import discord
 from discord import slash_command
 from discord.ext import commands, tasks
 from discord import Option
-from datetime import datetime
-from datetime import date
+from datetime import datetime, date
 
 
 class Birthday(commands.Cog):
@@ -24,6 +23,7 @@ class Birthday(commands.Cog):
                 month INTEGER NOT NULL,
                 year INTEGER DEFAULT NONE
             )""")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_birthday_date ON birthday (day, month)")
             self.check_day.start()
             print("""            birthday.py      ✅""")
 
@@ -54,9 +54,7 @@ class Birthday(commands.Cog):
             return
 
     @slash_command()
-    async def set_birthday(self, ctx,
-                           day: Option(int, required=True),
-                           month: Option(int, required=True),
+    async def set_birthday(self, ctx, day: Option(int, required=True), month: Option(int, required=True),
                            year: Option(int, default=None, required=False)):
         async with aiosqlite.connect("database.db") as db:
             print(f"{ctx.author} hat /set_birthday ausgeführt")
@@ -68,26 +66,18 @@ class Birthday(commands.Cog):
             fail.set_thumbnail(url=avatar)
 
             embedsus = discord.Embed(title="Erfolgreich", color=discord.Color.green(),
-                                     description=f"Dein Geburtstag wurde erfolgreich auf den **{day}.{month}** "
-                                                 f"gesetzt.")
+                                     description=f"Dein Geburtstag wurde erfolgreich auf den "
+                                                 f"**{day}.{month}** gesetzt.")
             embedsus.set_thumbnail(url=avatar)
 
-            if day < 1 or day > 31:
+            if day < 1 or day > 31 or month < 1 or month > 12 or (year is not None and (year < 1900 or year > 2022)):
                 return await ctx.respond(embed=fail, ephemeral=True)
-            else:
-                if month < 1 or month > 12:
-                    return await ctx.respond(embed=fail, ephemeral=True)
-                else:
-                    if year is not None:
-                        if year < 1900 or year > 2022:
-                            return await ctx.respond(embed=fail, ephemeral=True)
 
-                    await db.execute(
-                        "INSERT OR REPLACE INTO birthday (user_id, day, month, year) VALUES (?, ?, ?, ?)",
-                        (ctx.author.id, day, month, year))
-                    await db.commit()
-                    await ctx.respond(embed=embedsus, ephemeral=True)
-                    print(f"{ctx.author} hat seinen Geburtstag auf den {day}.{month}.{year} gesetzt.")
+            await db.execute("INSERT OR REPLACE INTO birthday (user_id, day, month, year) VALUES (?, ?, ?, ?)",
+                             (ctx.author.id, day, month, year))
+            await db.commit()
+            await ctx.respond(embed=embedsus, ephemeral=True)
+            print(f"{ctx.author} hat seinen Geburtstag auf den {day}.{month}.{year} gesetzt.")
 
     @slash_command()
     async def delete_birthday(self, ctx):
@@ -120,40 +110,38 @@ class Birthday(commands.Cog):
             birthdays = await cursor.fetchall()
             if not birthdays:
                 return await ctx.respond(embed=fail, ephemeral=True)
-            else:
-                today = date.today()
-                birthday_list = []
-                for user_id, day, month, year in birthdays:
-                    user = self.bot.get_user(user_id)
-                    if user:
-                        next_birthday = date(today.year, month, day)
-                        if today > next_birthday:
-                            next_birthday = date(today.year + 1, month, day)
-                        days_left = (next_birthday - today).days
-                        today = date.today()
 
-                        age = None
-                        if year and month and day:
-                            # Grundsätzliches Alter berechnen
-                            age = today.year - year
-                            if (today.month, today.day) >= (month, day):
-                                age += 1
+            today = date.today()
+            birthday_list = []
+            for user_id, day, month, year in birthdays:
+                user = self.bot.get_user(user_id)
+                if user:
+                    next_birthday = date(today.year, month, day)
+                    if today > next_birthday:
+                        next_birthday = date(today.year + 1, month, day)
+                    days_left = (next_birthday - today).days
 
-                        birthday_list.append((user, days_left, age))
+                    age = None
+                    if year:
+                        age = today.year - year
+                        if (today.month, today.day) >= (month, day):
+                            age += 1
 
-                birthday_list.sort(key=lambda x: x[1])
+                    birthday_list.append((user, days_left, age))
 
-                birthday_info = ""
-                for i, (user, days_left, age) in enumerate(birthday_list, start=1):
-                    if age is not None:
-                        birthday_info += (f"**{i}**. {user.mention} - **{days_left}** Tage bis zum Geburtstag, "
-                                          f"wird **{age}** Jahre alt\n")
-                    else:
-                        birthday_info += f"**{i}**. {user.mention} - **{days_left}** Tage bis zum Geburtstag\n"
+            birthday_list.sort(key=lambda x: x[1])
 
-                embed.description = birthday_info
-                await ctx.respond(embed=embed)
-                print(f"{ctx.author} hat die nächsten Geburtstage abgefragt.")
+            birthday_info = ""
+            for i, (user, days_left, age) in enumerate(birthday_list, start=1):
+                if age is not None:
+                    birthday_info += (f"**{i}**. {user.mention} - **{days_left}** Tage bis zum Geburtstag, "
+                                      f"wird **{age}** Jahre alt\n")
+                else:
+                    birthday_info += f"**{i}**. {user.mention} - **{days_left}** Tage bis zum Geburtstag\n"
+
+            embed.description = birthday_info
+            await ctx.respond(embed=embed)
+            print(f"{ctx.author} hat die nächsten Geburtstage abgefragt.")
 
     @slash_command()
     async def see_birthday(self, ctx, user: discord.Member = None):
@@ -184,12 +172,11 @@ class Birthday(commands.Cog):
 
     @slash_command()
     @commands.has_permissions(administrator=True)
-    async def admin_birthday(self, ctx, user: discord.Member, day: int, month: int,
-                             year: Option(int, default=None, required=False)):
+    async def admin_birthday(self, ctx, user: discord.Member, day: int, month: int, year: Option(int, default=None,
+                                                                                                 required=False)):
         print(f"{ctx.author} hat /admin_birthday ausgeführt")
         if ctx.author.guild_permissions.administrator:
             async with aiosqlite.connect("database.db") as db:
-
                 await db.execute("INSERT OR REPLACE INTO birthday (user_id, day, month, year) VALUES (?, ?, ?, ?)",
                                  (user.id, day, month, year))
                 await db.commit()
@@ -214,7 +201,6 @@ class Birthday(commands.Cog):
             await db.commit()
             await ctx.respond(embed=embed, ephemeral=True)
             print(f"{ctx.author} hat den Geburtstag von {user} gelöscht.")
-            await db.close()
 
 
 def setup(bot):

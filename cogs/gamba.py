@@ -75,22 +75,18 @@ class BlackjackView(View):
                                           f"Du hast: {', '.join(self.player_hand)} (Wert: {player_value})",
                               color=discord.Color.blue())
 
-        if dealer_value > 21 or player_value > dealer_value:
-            embed.add_field(name="Glückwunsch!", value="Du hast gewonnen!")
-            async with aiosqlite.connect(self.db) as db:
-                await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (self.bet,
-                                                                                              self.ctx.author.id))
-                await db.commit()
-                await db.close()
-        elif player_value < dealer_value:
-            embed.add_field(name="Schade!", value="Du hast verloren.")
-            async with aiosqlite.connect(self.db) as db:
-                await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?", (self.bet,
-                                                                                              self.ctx.author.id))
-                await db.commit()
-                await db.close()
-        else:
-            embed.add_field(name="Unentschieden!", value="Niemand hat gewonnen.")
+        async with aiosqlite.connect(self.db) as db:
+            if dealer_value > 21 or player_value > dealer_value:
+                embed.add_field(name="Glückwunsch!", value="Du hast gewonnen!")
+                await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
+                                 (self.bet, self.ctx.author.id))
+            elif player_value < dealer_value:
+                embed.add_field(name="Schade!", value="Du hast verloren.")
+                await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?",
+                                 (self.bet, self.ctx.author.id))
+            else:
+                embed.add_field(name="Unentschieden!", value="Niemand hat gewonnen.")
+            await db.commit()
 
         await interaction.response.edit_message(embed=embed, view=None)
         self.stop()
@@ -103,7 +99,16 @@ class Blackjack(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("              gamba.py         ✅")
+        async with aiosqlite.connect(self.db) as db:
+            await db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                cookies INTEGER DEFAULT 0,
+                flag_skips INTEGER DEFAULT 0
+            )""")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_users_user_id ON users (user_id)")
+            await db.commit()
+        print("            gamba.py         ✅")
 
     @slash_command()
     @commands.cooldown(1, 60, commands.BucketType.user)
