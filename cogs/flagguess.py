@@ -9,7 +9,7 @@ import random
 class FlagGuessingCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.guessing_channel = 1163557292092956765
+        self.guessing_channel = 1144928158102073344
         self.flag_dict = {
             "🇦🇫": "Afghanistan",
             "🇦🇱": "Albanien",
@@ -242,8 +242,13 @@ class FlagGuessingCog(commands.Cog):
                                                   f"richtig erraten und bekommt dafür **{cookies}** Cookies.",
                                       color=discord.Color.green())
                 async with aiosqlite.connect(self.db) as db:
+                    async with db.execute("SELECT flag_streak FROM users WHERE user_id = ?", (message.author.id,)) as cursor:
+                        result = await cursor.fetchone()
+                        cookies += result[0]
                     await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
                                      (cookies, message.author.id))
+                    await db.execute("UPDATE users SET flag_streak = flag_streak + 1 WHERE user_id = ?",
+                                     (message.author.id,))
                     await db.commit()
                 print(f"{message.author} hat eine Flagge erraten.")
                 await message.add_reaction('✅')
@@ -251,11 +256,24 @@ class FlagGuessingCog(commands.Cog):
                 self.cooldown = True
                 await self.start_new_game()
             else:
-                await message.add_reaction('❌')
-                self.count += 1
-                if self.count == 5:
-                    await message.channel.send("Du kannst /skip benutzen, um die Flagge zu überspringen.")
-                    self.count = 0
+                async with aiosqlite.connect(self.db) as db:
+                    await message.add_reaction('❌')
+                    async with db.execute("SELECT flag_streak FROM users WHERE user_id = ?", (message.author.id,)
+                                          ) as cursor:
+                        result = await cursor.fetchone()
+                    await db.execute("UPDATE users SET flag_streak = 0 WHERE user_id = ?", (message.author.id,))
+                    await db.commit()
+
+                    embed = discord.Embed(title="Streak kaputt!", color=discord.Color.red(),
+                                          description=f"Du hast deine **{result[0]}er** Streak verloren.")
+
+                    if result[0] > 2:
+                        await message.channel.send(embed=embed)
+
+                    self.count += 1
+                    if self.count == 5:
+                        await message.channel.send("Du kannst /skip benutzen, um die Flagge zu überspringen.")
+                        self.count = 0
 
     @slash_command()
     async def skip(self, ctx):

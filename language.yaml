@@ -208,6 +208,30 @@ de:
   event:
     name: event
     description: Lasse ein zufälliges Event passieren bei den du Cookie bekommen oder verlieren kannst.
+  embed:
+    name: embed
+    description: Lasse ein Embed generieren.
+  give:
+    name: give
+    description: Gib einem Nutzer Cookies [ADMIN].
+    options:
+      user:
+        name: user
+        description: Der Nutzer dem du Cookies geben willst.
+      amount:
+        name: amount
+        description: Die Anzahl der Cookies die du geben willst.
+  say:
+    name: say
+    description: Lasse den Bot etwas sagen.
+    options:
+      message:
+        name: text
+        description: Der Text den der Bot sagen soll.
+      channel:
+        name: channel
+        description: Der Channel in dem der Bot den Text sagen soll.
+
 
 en:
   set_birthday:
@@ -418,3 +442,26 @@ en:
   event:
     name: event
     description: Let a random Event happen where you can get or lose Cookies.
+  embed:
+    name: embed
+    description: Let generate an Embed.
+  give:
+    name: give
+    description: Give a User Cookies [ADMIN].
+    options:
+      user:
+        name: user
+        description: The User you want to give Cookies.
+      amount:
+        name: amount
+        description: The amount of Cookies you want to give.
+  say:
+    name: say
+    description: Let the Bot say something.
+    options:
+      message:
+        name: text
+        description: The text the Bot should say.
+      channel:
+        name: channel
+        description: The Channel in which the Bot should say the text.

@@ -53,7 +53,8 @@ class LVLSystem(commands.Cog):
                 crate INTEGER DEFAULT 0,
                 streak INTEGER DEFAULT 0,
                 last_daily TEXT DEFAULT NULL,
-                flag_skips INTEGER DEFAULT 0)""")
+                flag_skips INTEGER DEFAULT 0,
+                flag_streak INTEGER DEFAULT 0)""")
             print("""            lvlsystem.py     ✅""")
 
     async def check_user(self, user_id):
@@ -405,6 +406,7 @@ class LVLSystem(commands.Cog):
                 print(f"{ctx.author} hat von {member} {cookies} Cookies gehackt")
 
     @slash_command()
+    @commands.cooldown(1, 21600, commands.BucketType.user)
     async def event(self, ctx):
         print(f"{ctx.author} hat /events gemacht")
         async with aiosqlite.connect(self.DB) as db:
