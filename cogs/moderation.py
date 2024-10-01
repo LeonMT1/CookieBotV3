@@ -50,6 +50,7 @@ class Moderation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.db = "database.db"
+        self.channel = 825340653378338837
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -126,7 +127,7 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_application_command(self, ctx: discord.ApplicationContext) -> None:
-        logs = self.get_channel(ctx.guild, 'logs')
+        channel = self.get_channel(self.channel)
         embed = discord.Embed(
             title=f'/{ctx.command} in {ctx.channel}',
             timestamp=datetime.now(),
@@ -148,7 +149,7 @@ class Moderation(commands.Cog):
         embed.set_author(name=ctx.user.display_name, icon_url=ctx.user.display_avatar)
 
         print(f'{ctx.user} benutzte {ctx.command} in {ctx.channel}')
-        await logs.send(embed=embed)
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -161,7 +162,7 @@ class Moderation(commands.Cog):
             url = message.author.avatar.url
 
         if isinstance(message.channel, discord.DMChannel):
-            team_channel = self.bot.get_channel(self.team_channel_id)
+            channel = self.bot.get_channel(self.channel)
             embed = discord.Embed(title="", description=f"**{message.content}**", color=discord.Color.blue())
             embed.timestamp = discord.utils.utcnow()
             embed.set_author(name=f"Neue Nachricht von {message.author}", icon_url=url)
@@ -169,7 +170,7 @@ class Moderation(commands.Cog):
             embed.set_footer(text=f"UserID: {message.author.id}")
 
             print(f"Privat Nachricht von {message.author}")
-            await team_channel.send(embed=embed)
+            await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
@@ -180,6 +181,7 @@ class Moderation(commands.Cog):
             url = "https://cookieattack.me/img/nopb.png"
         else:
             url = message.author.avatar.url
+        channel = self.bot.get_channel(self.channel)
         embed = discord.Embed(title="", description=f"Nachricht Inhalt: **{message.content}**",
                               color=discord.Color.red())
         embed.timestamp = discord.utils.utcnow()
@@ -188,7 +190,7 @@ class Moderation(commands.Cog):
         embed.set_footer(text=f"UserID: {message.author.id}")
 
         print(f"Nachricht von {message.author} wurde gelöscht")
-        await self.bot.get_channel(self.channel).send(embed=embed)
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -200,6 +202,7 @@ class Moderation(commands.Cog):
         else:
             url = before.author.avatar.url
 
+        channel = self.bot.get_channel(self.channel)
         embed = discord.Embed(title="", description=f"**Davor:** {before.content}\n**Danach:** {after.content}",
                               color=discord.Color.blue())
         embed.timestamp = discord.utils.utcnow()
@@ -208,13 +211,14 @@ class Moderation(commands.Cog):
         embed.set_footer(text=f"UserID: {before.author.id}")
 
         print(f"Nachricht von {before.author} wurde bearbeitet")
-        await self.bot.get_channel(self.channel).send(embed=embed)
+        await channel.send(embed=embed)
 
     @slash_command()
     @discord.default_permissions(ban_members=True)
     async def unban(self, ctx: discord.ApplicationContext,
                     user: Option(str, "Wich user do you want to unban",
                                  autocomplete=basic_autocomplete(unban_autocomplete), required=True)):
+        channel = self.bot.get_channel(self.channel)
         embed = discord.Embed(
             title='Entbannt',
             description=f'{user} wurde entbannt',
@@ -225,7 +229,7 @@ class Moderation(commands.Cog):
             if f'{ban.user}' == f'{user}':
                 await ctx.guild.unban(ban.user)
                 print(f"{ctx.author.name} hat {ban.user} entbannt")
-                await self.bot.get_channel(self.channel).send(embed=embed)
+                await channel.send(embed=embed)
                 return await ctx.respond(f"{ban.user} wurde entbannt", ephemeral=True)
 
             else:
