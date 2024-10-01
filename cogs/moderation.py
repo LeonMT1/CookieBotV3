@@ -6,6 +6,7 @@ import pytz
 from discord import Option
 from discord import slash_command
 from discord.ext import commands
+from discord.utils import basic_autocomplete
 
 
 class EmbedModal(discord.ui.Modal):
@@ -52,7 +53,13 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("moderation.py ✅")
+        print("            moderation.py      ✅")
+
+    @staticmethod
+    async def unban_autocomplete(ctx: discord.AutocompleteContext):
+        x = await ctx.interaction.guild.bans().flatten()
+        x = [f'{y.user}' for y in x]
+        return x
 
     @slash_command()
     async def embed(self, ctx):
@@ -116,6 +123,115 @@ class Moderation(commands.Cog):
     async def say(self, ctx, channel: discord.TextChannel, *, message):
         await channel.send(message)
         await ctx.respond("Nachricht erfolgreich gesendet!", ephemeral=True)
+
+    @commands.Cog.listener()
+    async def on_application_command(self, ctx: discord.ApplicationContext) -> None:
+        logs = self.get_channel(ctx.guild, 'logs')
+        embed = discord.Embed(
+            title=f'/{ctx.command} in {ctx.channel}',
+            timestamp=datetime.now(),
+            color=discord.Color.purple()
+        )
+        embed.add_field(name='User', value=ctx.user.mention)
+        embed.add_field(name='Channel', value=ctx.channel.mention)
+
+        command = f'/{ctx.command} '
+        if ctx.selected_options:
+            command += ' '.join(
+                (
+                    f'**{option["name"]}**:{option["value"]}'
+                    for option
+                    in ctx.selected_options
+                )
+            )
+        embed.add_field(name='Command', value=command)
+        embed.set_author(name=ctx.user.display_name, icon_url=ctx.user.display_avatar)
+
+        print(f'{ctx.user} benutzte {ctx.command} in {ctx.channel}')
+        await logs.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author == self.bot.user or message.author.bot:
+            return
+
+        if message.author.avatar is None:
+            url = "https://cookieattack.me/img/nopb.png"
+        else:
+            url = message.author.avatar.url
+
+        if isinstance(message.channel, discord.DMChannel):
+            team_channel = self.bot.get_channel(self.team_channel_id)
+            embed = discord.Embed(title="", description=f"**{message.content}**", color=discord.Color.blue())
+            embed.timestamp = discord.utils.utcnow()
+            embed.set_author(name=f"Neue Nachricht von {message.author}", icon_url=url)
+            embed.set_thumbnail(url="")
+            embed.set_footer(text=f"UserID: {message.author.id}")
+
+            print(f"Privat Nachricht von {message.author}")
+            await team_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        if message.author == self.bot.user or message.author.bot:
+            return
+
+        if message.author.avatar is None:
+            url = "https://cookieattack.me/img/nopb.png"
+        else:
+            url = message.author.avatar.url
+        embed = discord.Embed(title="", description=f"Nachricht Inhalt: **{message.content}**",
+                              color=discord.Color.red())
+        embed.timestamp = discord.utils.utcnow()
+        embed.set_author(name=f"Nachricht von {message.author} wurde gelöscht", icon_url=url)
+        embed.set_thumbnail(url="")
+        embed.set_footer(text=f"UserID: {message.author.id}")
+
+        print(f"Nachricht von {message.author} wurde gelöscht")
+        await self.bot.get_channel(self.channel).send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        if before.author == self.bot.user or before.author.bot:
+            return
+
+        if before.author.avatar is None:
+            url = "https://cookieattack.me/img/nopb.png"
+        else:
+            url = before.author.avatar.url
+
+        embed = discord.Embed(title="", description=f"**Davor:** {before.content}\n**Danach:** {after.content}",
+                              color=discord.Color.blue())
+        embed.timestamp = discord.utils.utcnow()
+        embed.set_author(name=f"Bearbeite Nachricht von {before.author}", icon_url=url)
+        embed.set_thumbnail(url="")
+        embed.set_footer(text=f"UserID: {before.author.id}")
+
+        print(f"Nachricht von {before.author} wurde bearbeitet")
+        await self.bot.get_channel(self.channel).send(embed=embed)
+
+    @slash_command()
+    @discord.default_permissions(ban_members=True)
+    async def unban(self, ctx: discord.ApplicationContext,
+                    user: Option(str, "Wich user do you want to unban",
+                                 autocomplete=basic_autocomplete(unban_autocomplete), required=True)):
+        embed = discord.Embed(
+            title='Entbannt',
+            description=f'{user} wurde entbannt',
+            color=discord.Color.green()
+        )
+        embed.set_footer(text=f"Entbannt von {ctx.author.name}", icon_url=ctx.author.avatar.url)
+        async for ban in ctx.guild.bans():
+            if f'{ban.user}' == f'{user}':
+                await ctx.guild.unban(ban.user)
+                print(f"{ctx.author.name} hat {ban.user} entbannt")
+                await self.bot.get_channel(self.channel).send(embed=embed)
+                return await ctx.respond(f"{ban.user} wurde entbannt", ephemeral=True)
+
+            else:
+                continue
+
+        return await ctx.respond("User kann nicht gefunden werden.", ephemeral=True)
 
 
 def setup(bot):

@@ -20,7 +20,7 @@ class CountingCog(commands.Cog):
                 highscore INTEGER DEFAULT 0
             )""")
             await db.execute("CREATE INDEX IF NOT EXISTS idx_counting_count ON counting (count)")
-            print("counting.py ✅")
+            print("""            counting.py  ✅""")
             async with db.execute("SELECT count, highscore FROM counting") as cursor:
                 row = await cursor.fetchone()
                 if row is None:

@@ -231,6 +231,13 @@ de:
       channel:
         name: channel
         description: Der Channel in dem der Bot den Text sagen soll.
+  unban:
+    name: unban
+    description: Entbanne einen Nutzer.
+    options:
+      user:
+        name: user
+        description: Der Nutzer den du entbannen willst.
 
 
 en:
@@ -465,3 +472,10 @@ en:
       channel:
         name: channel
         description: The Channel in which the Bot should say the text.
+  unban:
+    name: unban
+    description: Unban a User.
+    options:
+      user:
+        name: user
+        description: The User you want to unban.

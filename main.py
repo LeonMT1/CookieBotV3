@@ -122,6 +122,8 @@ async def on_member_join(member):
         em.set_image(
             url="https://media.discordapp.net/attachments/825340653378338837/963556131551191070/ezgif-1-9da174320c.gif")
         await bot.get_channel(welcome_channel).send(embed=em)
+        role = discord.utils.get(member.guild.roles, id=724605752676843591)
+        await member.add_roles(role)
     else:
         return
 
@@ -170,5 +172,6 @@ if __name__ == '__main__':
     bot.load_extension("cogs.flagguess")
     bot.load_extension("cogs.gamba")
     bot.load_extension("cogs.bugreport")
+    bot.load_extension("cogs.ticket")
     bot.localize_commands(localization)
     bot.run(os.getenv("TESTTOKEN"))

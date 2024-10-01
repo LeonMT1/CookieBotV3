@@ -1,107 +1,140 @@
-import datetime
-import random
-
+import aiohttp
+import aiosqlite
+import discord
 from discord.ext import commands, tasks
+from translate import Translator
 
 
 class Chat(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.last_message_time = {}
-        self.channel_id = 963740046995890176
-        self.check_inactivity.start()
+        self.translator = Translator(to_lang="de")
+        self.post_wyr_question.start()
+        self.report_results.start()
+        self.db_path = 'database.db'
+        self.bot.loop.create_task(self.init_db())
+        self.first_report_skipped = True
+        self.channel = 963740046995890176
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("""            chat.py          ✅""")
+    async def init_db(self):
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute('''CREATE TABLE IF NOT EXISTS responses
+                                (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                 question TEXT,
+                                 option_1_count INTEGER DEFAULT 0,
+                                 option_2_count INTEGER DEFAULT 0)''')
+            await db.execute('''CREATE TABLE IF NOT EXISTS user_votes
+                                (user_id INTEGER,
+                                 question TEXT,
+                                 PRIMARY KEY (user_id, question))''')
+            await db.commit()
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:
-            return
+    def cog_unload(self):
+        self.post_wyr_question.cancel()
+        self.report_results.cancel()
 
-        self.last_message_time[message.channel.id] = datetime.datetime.utcnow()
+    @tasks.loop(hours=24)
+    async def post_wyr_question(self):
+        channel = self.bot.get_channel(self.channel)
+        wyr_question = await self.get_wyr_question()
+        if wyr_question:
+            translated_question = self.translator.translate(wyr_question)
+            buttons = [
+                discord.ui.Button(label="Option 1", style=discord.ButtonStyle.green, custom_id="Option 1"),
+                discord.ui.Button(label="Option 2", style=discord.ButtonStyle.red, custom_id="Option 2")]
 
-        if '?' in message.content:
-            if random.randint(1, 10) == 1:
-                print(f"Frage von {message.author} beantwortet ({message.content})")
-                random_response = [
-                    'Ja', 'Nein', 'Vielleicht', 'Ich hab keine Ahnung', 'Frag später nochmal', 'Frag jemand anderen',
-                    'Frag mich nicht', 'Ich weiß es nicht', 'Ich kann dir nicht helfen', 'Juckt',
-                    'Ich bin ein Bot und dumm', 'Ich hab nur Kekse im Kopf', "Ja", "Nein", "Sicher", "Bestimmt",
-                    "SICHER NICHT", "nein du idiot", "Bitte bitte nicht", "Bitte ja", "Wer weiß", "Ich weiß es nicht",
-                    "Frag jemanden anderes", "Lass mich in Ruhe!", "Ich kann mich nicht erinnern", "Du auch", "Bruh",
-                    "Hoffnung", "Nimm einfach einen Cookie", "wenn du es willst", "niemals",
-                    "Wenn ja, dann fress ich nen Besen", "Bestimmt aber wusstest du, dass dich niemand mag?",
-                    "Halts Maul, ich bin beschäftigt", "Ich bin zu faul um zu antworten", "Ich bin zu beschäftigt",
-                    "Leck Eier", "Mir fällst nichts ein", "Spiel erstmal Elden Ring", "Spiel erstmal Minecraft",
-                    "Spiel erstmal Fortnite", "Fass Grass an",
-                    "https://media.discordapp.net/attachments/1124052881218216057/1246887861220016218/"
-                    "alles-was-zaehlt.png"
-                ]
+            view = discord.ui.View()
+            for button in buttons:
+                view.add_item(button)
 
-                guild = message.guild
+            embed = discord.Embed(title="Würdest du eher:", description=translated_question,
+                                  color=discord.Color.green())
+            await channel.send(embed=embed, view=view)
 
-                non_bot_members = [member for member in guild.members if not member.bot]
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("INSERT INTO responses (question) VALUES (?)", (translated_question,))
+                await db.commit()
 
-                user = None
-                if non_bot_members:
-                    user = random.choice(non_bot_members)
+            async def button_callback(interaction):
+                user_id = interaction.user.id
+                question_text = translated_question
 
-                if user:
-                    avatar_url = user.avatar.url if user.avatar else "img/defaultavatar.png"
-                else:
-                    avatar_url = "img/defaultavatar.png"
+                async with aiosqlite.connect(self.db_path) as db:
+                    async with db.execute("SELECT * FROM user_votes WHERE user_id = ? AND question = ?",
+                                          (user_id, question_text)) as cursor:
+                        row = await cursor.fetchone()
 
-                webhook = await message.channel.create_webhook(name="Sudo webhook...",
-                                                               reason=f"Frage von {message.author}")
-                await webhook.send(username=f"{user.name}", avatar_url=avatar_url,
-                                   content=f"{random.choice(random_response)}")
-                await webhook.delete()
-            else:
-                print(f"Frage von {message.author} nicht beantwortet ({message.content})")
+                    if row:
+                        await interaction.response.send_message("Du hast bereits abgestimmt!", ephemeral=True)
+                        return
+
+                    chosen_option = interaction.data['custom_id']
+                    await interaction.response.send_message(f"Du hast {chosen_option} gewählt.", ephemeral=True)
+
+                    await db.execute("INSERT INTO user_votes (user_id, question) VALUES (?, ?)",
+                                     (user_id, question_text))
+
+                    async with db.execute("SELECT id FROM responses WHERE question = ?",
+                                          (question_text,)) as cursor:
+                        row = await cursor.fetchone()
+
+                    if row:
+                        question_id = row[0]
+                        if chosen_option == "Option 1":
+                            await db.execute("UPDATE responses SET option_1_count = option_1_count + 1 WHERE id = ?",
+                                             (question_id,))
+                        else:
+                            await db.execute("UPDATE responses SET option_2_count = option_2_count + 1 WHERE id = ?",
+                                             (question_id,))
+                        await db.commit()
+
+            buttons[0].callback = button_callback
+            buttons[1].callback = button_callback
+
+    @post_wyr_question.before_loop
+    async def before_post_wyr_question(self):
+        await self.bot.wait_until_ready()
+
+    async def get_wyr_question(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://api.truthordarebot.xyz/api/wyr?rating=pg13') as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data['question']
+                return None
+
+    @tasks.loop(hours=23)
+    async def report_results(self):
+        channel = self.bot.get_channel(self.channel)
+
+        async with (aiosqlite.connect(self.db_path) as db):
+            async with db.execute(
+                    "SELECT question, option_1_count, option_2_count FROM responses ORDER BY id DESC LIMIT 1"
+            ) as cursor:
+                row = await cursor.fetchone()
+
+        if row:
+            question, option_1_count, option_2_count = row
+            total_responses = option_1_count + option_2_count
+
+            if total_responses == 0:
                 return
 
-    @tasks.loop(seconds=10)
-    async def check_inactivity(self):
-        now = datetime.datetime.utcnow()
-        if self.channel_id in self.last_message_time:
-            elapsed_time = (now - self.last_message_time[self.channel_id]).total_seconds()
-            if elapsed_time > 21600:
-                channel = self.bot.get_channel(self.channel_id)
-                if channel:
-                    random_questions = [
-                        'Was ist euere Lieblingsfarbe?', 'Wie war euer Tag?', 'Was ist euer Lieblingstier?',
-                        'Was ist euer Lieblingsessen?', 'Habt ihr ein Hobby? Wenn ja welche/s?',
-                        'Was euer Lieblingsfilm?', 'Habt ihr Haustiere? Wenn ja welche/s?',
-                        'Was ist euer Traumreiseziel?', 'Was ist eure Lieblingsserie?', "Was ist euer Lieblingsanime?",
-                        'Was ist euer Lieblingslied?', 'Was ist euer Lieblings game?', 'Was habt ihr heute noch vor?',
-                        'Was ist euer Lieblingsgetränk?', 'Wer ist euer Lieblings youtuber?',
-                        'Wer ist euer Lieblingsstreamer?', 'Schreibt einen random Fakt',
-                        'Was würdet ihr tun, wenn ihr 1Mio € hättet?', 'Was würdet ihr tuhen wenn ihr Diktator wärt?',
-                        'Was ist euer Lieblingssnack?', 'Wer ist euer Vorbild?', 'Was ist euer Traumberuf?',
-                        'Habt ihr Geschwister?', 'Mögt ihr Schnee?', 'Mögt ihr Regen?', 'Mögt ihr Sonne?',
-                        'Was ist eure Lieblings Jahreszeit?', 'Kaffee oder Tee?', 'Cola oder Fanta?',
-                        'Pepsi oder Cola?', 'Playstation oder Xbox?', 'PC oder Konsole?', 'Hund oder Katze?',
-                        'Hase oder Meerschweinchen?', 'Schlechteste Serie?', 'Schlechtester Film?',
-                        'Nutella mit oder ohne Butter?', 'Fortnite oder Minecraft?', 'Elden Ring oder Dark Souls?',
-                        'Beste Superkraft?', 'Unsichtbar oder fliegen können?', 'Unsterblich oder unendlich Geld?',
-                        'Unendlich Wissen oder unendlich Geld?', 'Unendlich Wissen oder unendlich Leben?',
-                        'Unendlich Leben oder unendlich Geld?', 'Unendlich Leben oder unendlich Wissen?',
-                        'Unnötigste Superkraft?', 'Am liebsten in der Vergangenheit oder Zukunft leben?',
-                        'Eher Tag oder Nacht?', 'Eher Sommer oder Winter?', 'Eher Stadt oder Land?',
-                        'Eher Meer oder Berge?', 'Eher Flugzeug oder Auto?', 'Eher Zug oder Bus?',
-                        'Schlechtestes Geburtstagsgeschenk?', 'Schlechtestes Game?', 'Schlechtestes Essen?',
-                        'Schlechteste Serie?', 'Schlechtester Film?', 'Schlechteste Superkraft?',
-                        'Schlechteste Fähigkeit?', 'Schlechteste Eigenschaft?', 'Schlechteste Angewohnheit?',
-                        'Schlechteste Gewohnheit?', 'Schlechteste Marke?', 'Schlechteste Firma?',
-                        'Schlechtester Laden?', 'Schlechtestes Restaurant?', 'Schlechteste Kette?',
-                    ]
-                    await channel.send(random.choice(random_questions))
-                    self.last_message_time[self.channel_id] = now
+            if self.first_report_skipped:
+                self.first_report_skipped = False
+            else:
+                option_1_percentage = (option_1_count / total_responses) * 100
+                option_2_percentage = (option_2_count / total_responses) * 100
+                embed = discord.Embed(title="Antwortverteilung für die Frage:", description=question,
+                                      color=discord.Color.green())
+                embed.add_field(name="Option 1:", value=f"{option_1_percentage:.2f}% ({option_1_count} Stimmen)",
+                                inline=True)
+                embed.add_field(name="Option 2:", value=f"{option_2_percentage:.2f}% ({option_2_count} Stimmen)",
+                                inline=True)
+                await channel.send(embed=embed)
 
-    @check_inactivity.before_loop
-    async def before_check_inactivity(self):
+    @report_results.before_loop
+    async def before_report_results(self):
         await self.bot.wait_until_ready()
 
 

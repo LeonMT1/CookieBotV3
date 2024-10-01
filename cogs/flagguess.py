@@ -9,7 +9,7 @@ import random
 class FlagGuessingCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.guessing_channel = 1144928158102073344
+        self.guessing_channel = 1163557292092956765
         self.flag_dict = {
             "🇦🇫": "Afghanistan",
             "🇦🇱": "Albanien",
@@ -218,7 +218,7 @@ class FlagGuessingCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("flagguess.py ✅")
+        print("            flagguess.py       ✅")
         self.guessing_channel = self.bot.get_channel(self.guessing_channel)
         await self.start_new_game()
 
@@ -289,6 +289,7 @@ class FlagGuessingCog(commands.Cog):
                     return print(f"{ctx.author} hat noch keine Cookies um die Flagge zu skippen.")
                 cookies, skips = result
                 if skips > 0:
+                    await self.start_new_game()
                     embed = discord.Embed(title="Flagge übersprungen!",
                                           description=f"Die Flagge war **{self.flag_dict[self.current_flag]}**",
                                           color=discord.Color.green())
@@ -296,7 +297,6 @@ class FlagGuessingCog(commands.Cog):
                     await db.execute("UPDATE users SET flag_skips = flag_skips - 1 WHERE user_id = ?", (ctx.author.id,))
                     await db.commit()
                     await ctx.respond(embed=embed)
-                    await self.start_new_game()
                     print(f"{ctx.author} hat die Flagge übersprungen mit einen Flag Skip.")
                 elif cookies < 5:
                     embed = discord.Embed(title="Nicht genügend Cookies!",
@@ -304,6 +304,7 @@ class FlagGuessingCog(commands.Cog):
                     await ctx.respond(embed=embed, ephemeral=True)
                     return print(f"{ctx.author} hat nicht genügend Cookies um die Flagge zu skippen.")
                 else:
+                    await self.start_new_game()
                     await db.execute("UPDATE users SET cookies = cookies - 5 WHERE user_id = ?", (ctx.author.id,))
                     await db.commit()
                     embed = discord.Embed(title="Flagge übersprungen!",
@@ -311,7 +312,6 @@ class FlagGuessingCog(commands.Cog):
                                           color=discord.Color.green())
                     embed.set_footer(text=f"Du hast jetzt noch {cookies - 5} Cookies.")
                     await ctx.respond(embed=embed)
-                    await self.start_new_game()
                     print(f"{ctx.author} hat die Flagge übersprungen.")
 
 

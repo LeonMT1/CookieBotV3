@@ -11,3 +11,6 @@ Flask~=3.0.3
 psutil~=6.0.0
 ffmpeg~=1.4.0
 PyGithub~=2.4.0
+aiohttp~=3.8.1
+translate~=3.6.1
+chat_exporter~=2.8.0
