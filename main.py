@@ -15,6 +15,7 @@ import yaml
 from colorama import Fore
 from discord.ext import tasks
 from dotenv import load_dotenv
+from itertools import cycle
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -37,6 +38,42 @@ class DualStream:
         self.stream2.flush()
 
 
+async def code_stats():
+    code_lines = 0
+    code_characters = 0
+    ignored_dirs = {'.venv', '__pycache__', '.git'}
+    for root, dirs, files in os.walk("."):
+        dirs[:] = [d for d in dirs if d not in ignored_dirs]
+        for datei in files:
+            if datei.endswith((".py", ".yaml")):
+                file_path = os.path.join(root, datei)
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                    code_lines += len(lines)
+                    code_characters += sum(len(line) for line in lines)
+    return code_lines, code_characters
+
+
+activities = None
+
+
+async def get_activities():
+    global activities
+    if activities is None:
+        code_lines, code_characters = await code_stats()
+        activities = cycle([
+            discord.Activity(type=discord.ActivityType.playing, name="mit Cookies."),
+            discord.Activity(type=discord.ActivityType.watching, name="auf den Chat."),
+            discord.Activity(type=discord.ActivityType.listening, name="DJ Salamischanze."),
+            discord.Game("CookieAttack"),
+            discord.Activity(type=discord.ActivityType.competing, name="Bingo"),
+            discord.Activity(type=discord.ActivityType.watching, name=f"{code_lines} Codezeilen."),
+            discord.Activity(type=discord.ActivityType.watching, name=f"{code_characters} Zeichen im Code.")
+        ])
+
+    return activities
+
+
 log_file = open(log_filename, 'a', encoding='utf-8')
 
 sys.stdout = DualStream(sys.stdout, log_file)
@@ -45,9 +82,7 @@ sys.stderr = DualStream(sys.stderr, log_file)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[logging.FileHandler(log_filename, encoding='utf-8'), logging.StreamHandler(sys.stdout)])
 
-activity = discord.Activity(type=discord.ActivityType.playing, name="mit Cookies.")
-
-bot = ezcord.Bot(intents=discord.Intents.all(), activity=activity, debug_guilds=None, ready_event=None, language="de")
+bot = ezcord.Bot(intents=discord.Intents.all(), debug_guilds=None, ready_event=None, language="de")
 bot.add_help_command()
 
 # Settings
@@ -68,6 +103,13 @@ async def check_ping():
         channel = bot.get_channel(importantlogchannel)
         await channel.send(f"**Warnung:** Der Bot-Ping ist aktuell über {warnping} ms! Aktueller Ping: "
                            f"{current_ping:.2f} ms")
+
+
+@tasks.loop(seconds=60)
+async def change_activity():
+    activity = await get_activities()
+    current_activity = next(activity)
+    await bot.change_presence(activity=current_activity)
 
 
 @bot.event
@@ -96,7 +138,7 @@ async def on_ready():
         timestamp=datetime.now().astimezone(tz=de))
     await asyncio.sleep(2)
     check_ping.start()
-    await bot.change_presence(status=discord.Status.online, activity=discord.Game("mit Cookies"))
+    change_activity.start()
     await bot.get_channel(logchannel).send(embed=online)
 
 
@@ -162,16 +204,16 @@ with open("language.yaml", encoding="utf-8") as file:
 if __name__ == '__main__':
     load_dotenv()
     bot.load_extension("cogs.chat")
-    bot.load_extension("cogs.birthday")
-    bot.load_extension("cogs.commands")
-    bot.load_extension("cogs.counting")
-    bot.load_extension("cogs.lvlsystem")
-    bot.load_extension("cogs.tictactoe")
-    bot.load_extension("cogs.moderation")
-    bot.load_extension("cogs.warnsystem")
-    bot.load_extension("cogs.flagguess")
-    bot.load_extension("cogs.gamba")
-    bot.load_extension("cogs.bugreport")
-    bot.load_extension("cogs.ticket")
+    # bot.load_extension("cogs.birthday")
+    # bot.load_extension("cogs.commands")
+    # bot.load_extension("cogs.counting")
+    # bot.load_extension("cogs.lvlsystem")
+    # bot.load_extension("cogs.tictactoe")
+    # bot.load_extension("cogs.moderation")
+    # bot.load_extension("cogs.warnsystem")
+    # bot.load_extension("cogs.flagguess")
+    # bot.load_extension("cogs.gamba")
+    # bot.load_extension("cogs.bugreport")
+    # bot.load_extension("cogs.ticket")
     bot.localize_commands(localization)
     bot.run(os.getenv("TESTTOKEN"))

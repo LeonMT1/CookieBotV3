@@ -218,7 +218,7 @@ class FlagGuessingCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("            flagguess.py       ✅")
+        print("""            flagguess.py     ✅""")
         self.guessing_channel = self.bot.get_channel(self.guessing_channel)
         await self.start_new_game()
 

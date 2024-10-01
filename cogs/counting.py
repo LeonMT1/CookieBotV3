@@ -13,6 +13,7 @@ class CountingCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print("""            counting.py      ✅""")
         async with aiosqlite.connect("database.db") as db:
             await db.execute("""
             CREATE TABLE IF NOT EXISTS counting (
@@ -20,7 +21,6 @@ class CountingCog(commands.Cog):
                 highscore INTEGER DEFAULT 0
             )""")
             await db.execute("CREATE INDEX IF NOT EXISTS idx_counting_count ON counting (count)")
-            print("""            counting.py  ✅""")
             async with db.execute("SELECT count, highscore FROM counting") as cursor:
                 row = await cursor.fetchone()
                 if row is None:

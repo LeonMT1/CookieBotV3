@@ -15,6 +15,8 @@ class Chat(commands.Cog):
         self.bot.loop.create_task(self.init_db())
         self.first_report_skipped = True
         self.channel = 963740046995890176
+        self.catchannel = 1286439047195004958
+        self.send_cat.start()
 
     async def init_db(self):
         async with aiosqlite.connect(self.db_path) as db:
@@ -43,7 +45,7 @@ class Chat(commands.Cog):
                 discord.ui.Button(label="Option 1", style=discord.ButtonStyle.green, custom_id="Option 1"),
                 discord.ui.Button(label="Option 2", style=discord.ButtonStyle.red, custom_id="Option 2")]
 
-            view = discord.ui.View()
+            view = discord.ui.View(timeout=86400)
             for button in buttons:
                 view.add_item(button)
 
@@ -135,6 +137,24 @@ class Chat(commands.Cog):
 
     @report_results.before_loop
     async def before_report_results(self):
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(hours=24)
+    async def send_cat(self):
+        channel = self.bot.get_channel(self.catchannel)  # Setze hier die ID des Forum-Channels ein
+        if channel:
+            async with aiohttp.ClientSession() as session:
+                url = 'https://api.thecatapi.com/v1/images/search'
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        cat_url = data[0]['url']  # Hol die URL des Bildes oder GIFs
+                        embed = discord.Embed(title="Daily Dose of Cats! 😺")
+                        embed.set_image(url=cat_url)
+                        await channel.send(embed=embed)
+
+    @send_cat.before_loop
+    async def before_send_cat(self):
         await self.bot.wait_until_ready()
 
 

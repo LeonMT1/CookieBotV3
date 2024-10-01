@@ -54,7 +54,7 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("            moderation.py      ✅")
+        print("""            moderation.py    ✅""")
 
     @staticmethod
     async def unban_autocomplete(ctx: discord.AutocompleteContext):
