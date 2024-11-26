@@ -231,9 +231,7 @@ class Moderation(commands.Cog):
                 print(f"{ctx.author.name} hat {ban.user} entbannt")
                 await channel.send(embed=embed)
                 return await ctx.respond(f"{ban.user} wurde entbannt", ephemeral=True)
-
-            else:
-                continue
+            continue
 
         return await ctx.respond("User kann nicht gefunden werden.", ephemeral=True)
 
