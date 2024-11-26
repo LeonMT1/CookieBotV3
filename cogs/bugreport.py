@@ -3,7 +3,6 @@ import random
 
 import aiosqlite
 import discord
-import discord.commands
 from discord.ext import commands
 from github import Github
 
