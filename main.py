@@ -203,7 +203,7 @@ with open("language.yaml", encoding="utf-8") as file:
 
 if __name__ == '__main__':
     load_dotenv()
-    bot.load_extension("cogs.chat")
+    # bot.load_extension("cogs.chat")
     # bot.load_extension("cogs.birthday")
     # bot.load_extension("cogs.commands")
     # bot.load_extension("cogs.counting")
@@ -215,5 +215,6 @@ if __name__ == '__main__':
     # bot.load_extension("cogs.gamba")
     # bot.load_extension("cogs.bugreport")
     # bot.load_extension("cogs.ticket")
+    bot.load_extension("cogs.ai")
     bot.localize_commands(localization)
     bot.run(os.getenv("TESTTOKEN"))
