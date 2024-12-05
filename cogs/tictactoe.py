@@ -203,7 +203,8 @@ class TicTacToe(discord.ui.View):
             """, (message_id, json.dumps(state.to_dict())))
             await db.commit()
 
-    async def delete_game_state(self, message_id):
+    @staticmethod
+    async def delete_game_state(message_id):
         async with aiosqlite.connect('database.db') as db:
             await db.execute("DELETE FROM games WHERE message_id = ?", (message_id,))
             await db.commit()

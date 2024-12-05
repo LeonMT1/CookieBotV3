@@ -186,21 +186,20 @@ class LVLSystem(commands.Cog):
                 if msg:
                     await ctx.respond(msg, ephemeral=True)
                     return
-                else:
-                    await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (betrag, user.id))
-                    await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?", (betrag,
-                                                                                                  ctx.author.id))
-                    await db.commit()
-                    embed = discord.Embed(title="Kekse verschenkt!", color=discord.Color.green(),
-                                          description=f"Du hast **{betrag}** Cookies an {user.name} verschenkt.")
-                    await ctx.respond(embed=embed, ephemeral=True)
-                    async with db.execute("SELECT cookies FROM users WHERE user_id = ?", (user.id,)) as cursor2:
-                        userresult = await cursor2.fetchone()
-                    try:
-                        await user.send(f"Du hast von {ctx.author.name} **{betrag}** Cookies bekommen. Du hast jetzt "
-                                        f"**{userresult[0]}** Cookies.")
-                    except discord.Forbidden:
-                        print(f"{user.name} konnte keine DM geschickt werden.")
+                await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?", (betrag, user.id))
+                await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?", (betrag,
+                                                                                              ctx.author.id))
+                await db.commit()
+                embed = discord.Embed(title="Kekse verschenkt!", color=discord.Color.green(),
+                                      description=f"Du hast **{betrag}** Cookies an {user.name} verschenkt.")
+                await ctx.respond(embed=embed, ephemeral=True)
+                async with db.execute("SELECT cookies FROM users WHERE user_id = ?", (user.id,)) as cursor2:
+                    userresult = await cursor2.fetchone()
+                try:
+                    await user.send(f"Du hast von {ctx.author.name} **{betrag}** Cookies bekommen. Du hast jetzt "
+                                    f"**{userresult[0]}** Cookies.")
+                except discord.Forbidden:
+                    print(f"{user.name} konnte keine DM geschickt werden.")
 
     @slash_command(description="Lasse dir dein Rank und den von anderen anzeigen!")
     async def rank(self, ctx, member: Option(discord.Member, description="Von welchen User möchtest du den Rank wissen"
@@ -363,17 +362,17 @@ class LVLSystem(commands.Cog):
                 await ctx.author.send(embed=embed, ephemeral=True)
                 return print(f"{ctx.author} hat versucht einen Bot zu hacken")
 
-            elif result[0] is None:
+            if result[0] is None:
                 await ctx.respond(embed=failembed)
                 failembed.set_footer(text="Es gab einen Fehler mit der Datenbank.")
                 return print(f"!!!{ctx.author} hat versucht {member} zu hacken aber es gab einen Datenbank Fehler!!!")
 
-            elif result[0] < cookies:
+            if result[0] < cookies:
                 await ctx.respond(embed=failembed)
                 failembed.set_footer(text=f"Du konntest {member.name} nicht Hacken da er sehr wenig Cookies hat.")
                 return print(f"{ctx.author} hat versucht einen Armen User zu Hacken")
 
-            elif failchance == 1:
+            if failchance == 1:
                 loading_message = await ctx.respond("💻 Hack wird initialisiert...")
                 progress_bar = "🟥" * 10
                 for i in range(11):
@@ -385,25 +384,23 @@ class LVLSystem(commands.Cog):
                 await loading_message.edit(content=None, embed=failembed)
                 failembed.set_footer(text="Heute ist einfach nicht dein Tag :(")
                 return print(f"{ctx.author}s Hack scheiterte")
+            loading_message = await ctx.respond("💻 Hack wird initialisiert...")
+            progress_bar = "🟥" * 10
+            for i in range(11):
+                current_stage = stages[min(i, len(stages) - 1)]
+                filled_bar = "🟩" * i
+                await loading_message.edit(
+                    content=f"{current_stage}\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
+                await asyncio.sleep(random.uniform(0.1, 1.9))
 
-            else:
-                loading_message = await ctx.respond("💻 Hack wird initialisiert...")
-                progress_bar = "🟥" * 10
-                for i in range(11):
-                    current_stage = stages[min(i, len(stages) - 1)]
-                    filled_bar = "🟩" * i
-                    await loading_message.edit(
-                        content=f"{current_stage}\n[{filled_bar}{progress_bar[i:]}] {i * 10}%")
-                    await asyncio.sleep(random.uniform(0.1, 1.9))
+            await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?",
+                             (cookies, member.id))
+            await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
+                             (cookies, ctx.author.id))
+            await db.commit()
 
-                await db.execute("UPDATE users SET cookies = cookies - ? WHERE user_id = ?",
-                                 (cookies, member.id))
-                await db.execute("UPDATE users SET cookies = cookies + ? WHERE user_id = ?",
-                                 (cookies, ctx.author.id))
-                await db.commit()
-
-                await loading_message.edit(content=None, embed=embed)
-                print(f"{ctx.author} hat von {member} {cookies} Cookies gehackt")
+            await loading_message.edit(content=None, embed=embed)
+            print(f"{ctx.author} hat von {member} {cookies} Cookies gehackt")
 
     @slash_command()
     @commands.cooldown(1, 21600, commands.BucketType.user)

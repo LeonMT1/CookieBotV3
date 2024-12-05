@@ -97,7 +97,8 @@ class Chat(commands.Cog):
     async def before_post_wyr_question(self):
         await self.bot.wait_until_ready()
 
-    async def get_wyr_question(self):
+    @staticmethod
+    async def get_wyr_question():
         async with aiohttp.ClientSession() as session:
             async with session.get('https://api.truthordarebot.xyz/api/wyr?rating=pg13') as response:
                 if response.status == 200:

@@ -182,18 +182,17 @@ async def on_member_remove(member):
             )
             await bot.get_channel(importantlogchannel).send(embed=embed)
             return
-        else:
-            em = discord.Embed(
-                title=':wave: Tschau! Er war noch viel zu Jung um zu sterben',
-                description=f'Tschau {member.mention} vielleicht kommst du ja irgendwann wieder.',
-                color=discord.Color.red(),
-                timestamp=datetime.now().astimezone(tz=de),
-            )
-            em.set_thumbnail(url=member.display_avatar.url)
-            em.set_image(
-                url="https://media.discordapp.net/attachments/825340653378338837/963556131769298954/ezgif-2"
-                    "-d70a849863.gif")
-            await bot.get_channel(welcome_channel).send(embed=em)
+        em = discord.Embed(
+            title=':wave: Tschau! Er war noch viel zu Jung um zu sterben',
+            description=f'Tschau {member.mention} vielleicht kommst du ja irgendwann wieder.',
+            color=discord.Color.red(),
+            timestamp=datetime.now().astimezone(tz=de),
+        )
+        em.set_thumbnail(url=member.display_avatar.url)
+        em.set_image(
+            url="https://media.discordapp.net/attachments/825340653378338837/963556131769298954/ezgif-2"
+                "-d70a849863.gif")
+        await bot.get_channel(welcome_channel).send(embed=em)
     else:
         return
 

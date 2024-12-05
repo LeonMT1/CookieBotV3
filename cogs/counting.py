@@ -1,3 +1,4 @@
+import ast
 import aiosqlite
 import discord
 import discord.commands
@@ -76,7 +77,7 @@ class CountingCog(commands.Cog):
                         await message.channel.send(f"**0** | Highscore: {highscore}")
                 elif all(char.isdigit() or char in '+-*/() ' for char in message.content):
                     try:
-                        result = eval(message.content)
+                        result = ast.literal_eval(message.content)
                         if result == self.count + 1:
                             self.count += 1
                             await db.execute("UPDATE counting SET count = ?, highscore = MAX(highscore, ?)",
